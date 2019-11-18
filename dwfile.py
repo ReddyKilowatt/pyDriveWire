@@ -6,8 +6,18 @@ from os import stat
 from struct import *
 import tempfile
 import urllib
-from urlparse import urlparse
-from urllib2 import Request, urlopen
+# from urlparse import urlparse
+# for Python 3
+from urllib.parse import urlparse
+
+# from urllib2 import Request, urlopen
+# Python 3
+import urllib.request as request
+
+
+
+
+
 
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
@@ -237,11 +247,12 @@ class DwHttpStreamingFile:
         start = self.pos
         end = self.pos + count - 1
 
-        req = Request(self.url)
+        # req = Request(self.url)
+        req = request(self.url)
         req.add_header("Range", "bytes=%d-%d" % (start, end))
 
         content = ''
-        uh = urlopen(req)
+        uh = request.urlopen(req)
         if uh.code >= 200 and uh.code < 300:
             content = uh.read()
         else:

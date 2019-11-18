@@ -1,140 +1,186 @@
+#!/anaconda3/envs/py36dev/bin/python
+
+"""
 # !/usr/local/bin/python
-import serial
-from dwserial import DWSerial
-from dwsocket import DWSocketServer, DWSocket, DWSimpleSocket
-from dwserver import DWServer
-from dwcommand import DWRepl, DWRemoteRepl, DWParser
-from dwhttpserver import DWHttpServer
-import traceback
-import logging
+"""
+
 import argparse
+import atexit
+import os
+import platform
+import sys
+import threading
+import traceback
 from argparse import Namespace
 
-import sys
-import os
-import time
-import threading
-import atexit
-
 from daemon import Daemon
-import platform
+from dwcommand import DWParser, DWRemoteRepl, DWRepl
+from dwhttpserver import DWHttpServer
+from dwserial import DWSerial
+from dwserver import DWServer
+from dwsocket import DWSimpleSocket, DWSocketServer
 
 VERSION = 'v0.5a'
 
+"""
+MAME ROMS from Mikey
+
+Drop these in your roms directory,
+http://www.colorcomputerarchive.com/coco/ROMs/MESS/coco2_hdb1.zip
+http://www.colorcomputerarchive.com/coco/ROMs/MESS/coco3_hdb1.zip
+
+# software, manuals, disk images
+http://www.colorcomputerarchive.com/coco/
+
+DriveWire manual
+
+https://github.com/n6il/pyDriveWire/blob/master/docs/The%20pyDriveWire%20Manual.md#ch11
+
+Run pyDriveWire like this:
+./pyDrivewire --accept --port 65504
+
+Then you can run mame as follows:
+mame -window coco3h -ext cc3hdb1
+
+This will insert the HDBDOS cartridge in the slot, and it will try to connect 
+to the pyDriveServer on port 65504
+
+I highly recommend that you become familiar with the CLI commands to control the server.
+in the window where the server is running press enter a few times.  There is your CLI
+
+you will need to mount the disk on the server side, can't do it from HDBDOS
+dw disk insert 0 /path
+
+Start the server WITH the web UI
+./pyDriveWire -dd --accept --port 65504 --ui-port 6800 /path/to/foo.dsk
+
+Start the server without the web UI
+./pyDriveWire -dd --accept --port 65504 /path/to/foo.dsk
+
+Running the test programs in the test (now diagnostics) directory:
+(1) start pyDriveWire Server
+(2) Mount disk image
+(2b) Enter dw server conn debug True in the server console
+(3) in another window, run test program, load the SAME disk image as in step2
+
+"""
 
 def ParseArgs():
     parser = argparse.ArgumentParser(
-        description='pyDriveWire Server %s' %
-        VERSION)
+            description='pyDriveWire Server %s' %
+                        VERSION)
     parser.add_argument(
-        '-s',
-        '--speed',
-        dest='speed',
-        help='Serial port speed')
+            '-s',
+            '--speed',
+            dest='speed',
+            help='Serial port speed')
     parser.add_argument(
-        '-a',
-        '--accept',
-        dest='accept',
-        action='store_true',
-        help='Accept incoming TCP connections on --port')
+            '-a',
+            '--accept',
+            dest='accept',
+            action='store_true',
+            help='Accept incoming TCP connections on --port')
     parser.add_argument(
-        '-c',
-        '--connect',
-        dest='connect',
-        action='store_true',
-        help='Connect to TCP connections --host --port')
+            '-c',
+            '--connect',
+            dest='connect',
+            action='store_true',
+            help='Connect to TCP connections --host --port')
     parser.add_argument('-H', '--host', dest='host', help='Hostname/IP')
     parser.add_argument('-p', '--port', dest='port', help='Port to use')
     parser.add_argument(
-        '-R',
-        '--rtscts',
-        dest='rtscts',
-        action='store_true',
-        help='Serial: Enable RTS/CTS Flow Control')
+            '-R',
+            '--rtscts',
+            dest='rtscts',
+            action='store_true',
+            help='Serial: Enable RTS/CTS Flow Control')
     parser.add_argument(
-        '-x',
-        dest='experimental',
-        action='append',
-        help='experimental options')
+            '-x',
+            dest='experimental',
+            action='append',
+            help='experimental options')
     parser.add_argument(
-        '-D',
-        '--cmd-port',
-        dest='cmdPort',
-        help='Remote dw command input')
+            '-D',
+            '--cmd-port',
+            dest='cmdPort',
+            help='Remote dw command input')
     parser.add_argument(
-        '-U',
-        '--ui-port',
-        dest='uiPort',
-        help='pyDriveWire UI Port')
+            '-U',
+            '--ui-port',
+            dest='uiPort',
+            help='pyDriveWire UI Port')
     parser.add_argument(
-        '-C',
-        '--config',
-        dest='config',
-        help='Config File',
-        default="~/.pydrivewirerc")
+            '-C',
+            '--config',
+            dest='config',
+            help='Config File',
+            default="~/.pydrivewirerc")
     parser.add_argument(
-        '--daemon',
-        dest='daemon',
-        action='store_true',
-        help='Daemon Mode, No Repl')
+            '--daemon',
+            dest='daemon',
+            action='store_true',
+            help='Daemon Mode, No Repl')
     parser.add_argument(
-        '--status',
-        dest='daemonStatus',
-        action='store_true',
-        help='Daemon Status')
+            '--status',
+            dest='daemonStatus',
+            action='store_true',
+            help='Daemon Status')
     parser.add_argument(
-        '--stop',
-        dest='daemonStop',
-        action='store_true',
-        help='Daemon Status')
+            '--stop',
+            dest='daemonStop',
+            action='store_true',
+            help='Daemon Status')
     parser.add_argument(
-        '--pid-file',
-        dest='daemonPidFile',
-        help='Daemon Pid File')
+            '--pid-file',
+            dest='daemonPidFile',
+            help='Daemon Pid File')
     parser.add_argument(
-        '--log-file',
-        dest='daemonLogFile',
-        help='Daemon Log File')
-    parser.add_argument('--debug', '-d', dest='debug', action='count')
+            '--log-file',
+            dest='daemonLogFile',
+            help='Daemon Log File')
+
+    # parser.add_argument('--debug', '-d', dest='debug', action='count')
+    # Python 3, don't default to None
+    parser.add_argument('--debug', '-d', default=0, dest='debug', action='count')
     parser.add_argument('--version', '-v', action='store_true')
     parser.add_argument(
-        '--hdbdos',
-        dest='hdbdos',
-        action='store_true',
-        help='HDBDos Mode')
+            '--hdbdos',
+            dest='hdbdos',
+            action='store_true',
+            help='HDBDos Mode')
     parser.add_argument(
-        '--offset',
-        dest='offset',
-        help='Number of sector offset for sector 0',
-        default='0')
+            '--offset',
+            dest='offset',
+            help='Number of sector offset for sector 0',
+            default='0')
     parser.add_argument(
-        '--noreconnect',
-        dest='noreconnect',
-        action='store_true',
-        help='Do not automatically reconnect outbound TCP server connections')
+            '--noreconnect',
+            dest='noreconnect',
+            action='store_true',
+            help='Do not automatically reconnect outbound TCP server connections')
     printer = parser.add_argument_group('printer', 'Printer Options')
     printer.add_argument(
-        '--print-format',
-        dest='printFormat',
-        choices=[
-            'pdf',
-            'txt'],
-        help='Printer output format, default: %(default)s',
-        default="pdf")
+            '--print-format',
+            dest='printFormat',
+            choices=[
+                'pdf',
+                'txt'],
+            help='Printer output format, default: %(default)s',
+            default="pdf")
     # printer.add_argument('--print-mode', dest='printMode', choices=['dir', 'file'], help='Printer output collation method, default: %(default)s', default="dir")
     printerLoc = printer.add_mutually_exclusive_group()
     printerLoc.add_argument(
-        '--print-dir',
-        dest='printDir',
-        help='Spool directory to send printer output')
+            '--print-dir',
+            dest='printDir',
+            help='Spool directory to send printer output')
     printerLoc.add_argument(
-        '--print-file',
-        dest='printFile',
-        help='File to send printer output, Note: Will be overwritten')
+            '--print-file',
+            dest='printFile',
+            help='File to send printer output, Note: Will be overwritten')
     printer.add_argument(
-        '--print-cmd',
-        dest='printCmd',
-        help='Command to run on flushed printer output')
+            '--print-cmd',
+            dest='printCmd',
+            help='Command to run on flushed printer output')
 
     parser.add_argument('files', metavar='FILE', nargs='*',
                         help='list of files')
@@ -172,7 +218,7 @@ def ParseArgs():
         err = "Serial connection must supply --speed and --port"
 
     if err:
-        print('\nERROR: %s\n' % err)
+        print(('\nERROR: %s\n' % err))
         parser.print_usage()
         exit(1)
 
@@ -198,8 +244,14 @@ def _getOptNames(args, opts):
 
 
 def _getOpts(args, opts):
-    r = [eval('args.%s' % o) for o in list(opts)]
-    # print "getOpts", opts, r
+    """
+    https://stackoverflow.com/questions/29336616/eval-scope-in-python-2-vs-3
+    Python 3
+    """
+    # r = [eval('args.%s' % o) for o in list(opts)]
+    r = []
+    for o in list(opts):
+        r.append(eval('args.%s' % o))
     return r
 
 
@@ -297,15 +349,15 @@ def ReadConfig(args):
                 if instance == 0:
                     # print key, accept, reject
                     if key in reject:
-                        print(
-                            '%d: rejecting line from config file: %s' %
-                            (instance, line))
+                        print((
+                                '%d: rejecting line from config file: %s' %
+                                (instance, line)))
                         continue
                     else:
                         if eval('iargs.%s' % key):
-                            print(
-                                '%d: rejecting line from config file: %s' %
-                                (instance, line))
+                            print((
+                                    '%d: rejecting line from config file: %s' %
+                                    (instance, line)))
                         else:
                             exec('iargs.%s = val' % key)
                 else:
@@ -326,19 +378,19 @@ def ReadConfig(args):
 
 def CreateServer(args, instance, instances, lock):
     if args.accept:
-        print("Accept connection on %s" % args.port)
+        print(("Accept connection on %s" % args.port))
         conn = DWSocketServer(port=args.port)
     elif args.connect:
-        print "Connect to %s:%s" % (args.host, args.port)
+        print("Connect to %s:%s" % (args.host, args.port))
         conn = DWSimpleSocket(
-            port=args.port,
-            host=args.host,
-            reconnect=True if not args.noreconnect else False)
+                port=args.port,
+                host=args.host,
+                reconnect=True if not args.noreconnect else False)
         conn.connect()
         conn.run()
     else:
-        print "Serial Port: %s at %s, RTS/CTS=%s" % (
-            args.port, args.speed, args.rtscts)
+        print("Serial Port: %s at %s, RTS/CTS=%s" % (
+            args.port, args.speed, args.rtscts))
         conn = DWSerial(args.port, args.speed, rtscts=args.rtscts)
         conn.connect()
 
@@ -355,12 +407,14 @@ def CreateServer(args, instance, instances, lock):
         cmds += ['dw server conn debug 1']
     cmds += args.cmds
     for cmd in cmds:
-        print parser.parse(cmd)
+        print(parser.parse(cmd))
 
     return dws
 
 
 def StartServer(args, dws):
+
+    cleanup_done = False
     def cleanup():
         # print "main: Closing serial port."
         for server in dws.instances:
@@ -379,15 +433,15 @@ def StartServer(args, dws):
             mode = 'rb+'
             if i + 1 < len(args.files):
                 opt = args.files[i + 1].lower()
-                if opt.startswith('opt=')and len(opt) > 4:
-                    print "opt=%s" % opt
+                if opt.startswith('opt=') and len(opt) > 4:
+                    print("opt=%s" % opt)
                     for o in opt[4:].split(','):
-                        print "opt=%s" % o
+                        print("opt=%s" % o)
                         if o == 'stream':
                             stream = True
                         elif o == 'ro':
                             mode = 'r'
-            print "stream=%s mode=%s" % (stream, mode)
+            print("stream=%s mode=%s" % (stream, mode))
             dws.open(drive, f, mode=mode, stream=stream)
             drive += 1
         if dws.instance == 0:
@@ -398,10 +452,16 @@ def StartServer(args, dws):
             if not args.daemon:
                 dwr = DWRepl(dws)
         dws.main()
+        pass
+    except KeyboardInterrupt:
+        print('\nUSER ABORT')
+        cleanup()
+        cleanup_done = True
     except BaseException:
         traceback.print_exc()
     finally:
-        cleanup()
+        if not cleanup_done:
+            cleanup()
 
 
 instances = [None]
@@ -446,7 +506,7 @@ if __name__ == '__main__':
 
     args = ParseArgs()
     if args.version:
-        print('pyDriveWire %s' % VERSION)
+        print(('pyDriveWire %s' % VERSION))
         exit(0)
     daemon = None
     pid = None
@@ -454,10 +514,10 @@ if __name__ == '__main__':
     if args.daemon or args.daemonStatus or args.daemonStop:
         pidFile = args.daemonPidFile
         daemon = pyDriveWireDaemon(
-            pidFile,
-            args,
-            stdout=args.daemonLogFile,
-            stderr=args.daemonLogFile)
+                pidFile,
+                args,
+                stdout=args.daemonLogFile,
+                stderr=args.daemonLogFile)
         if args.daemonStatus or args.daemonStop:
             pid = daemon.getPid()
             if pid:
@@ -466,7 +526,7 @@ if __name__ == '__main__':
         pidMsg = '\b'
         if pid:
             pidMsg = 'pid:%d' % pid
-        print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+        print("pyDriveWire Server %s status:%s" % (pidMsg, status))
     elif args.daemonStop:
         msg = ''
         if status == 'Running':
@@ -474,12 +534,12 @@ if __name__ == '__main__':
             msg = 'Stopped'
         else:
             msg = status
-        print "pyDriveWire Server pid:%s msg:%s" % (pid, msg)
+        print("pyDriveWire Server pid:%s msg:%s" % (pid, msg))
     elif args.daemon:
         daemon.start()
         pid = daemon.getPid()
         status = daemon.getStatus()
-        print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+        print("pyDriveWire Server %s status:%s" % (pidMsg, status))
         sys.path.stdout.flush()
         sys.exit(0)
     else:

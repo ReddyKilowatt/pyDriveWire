@@ -53,9 +53,9 @@ class DWServer:
 
     def open(self, disk, fileName, stream=False, mode="rb+"):
         self.files[disk] = DWFile(fileName, mode, stream=stream)
-        print(
+        print((
             'Opened: disk=%d file=%s stream=%s mode=%s' %
-            (disk, fileName, stream, mode))
+            (disk, fileName, stream, mode)))
         self.files[disk].file.seek(0)
         self.files[disk].hdbdos = self.hdbdos
         self.files[disk].offset = self.offset
@@ -64,7 +64,7 @@ class DWServer:
         d = self.files[disk]
         if d and isinstance(d, DWFile):
             name = d.file.name
-            print('Closing: disk=%d file=%s' % (disk, d.name))
+            print(('Closing: disk=%d file=%s' % (disk, d.name)))
             d.file.close()
             if d.remote and not d.stream:
                 d._delete()
@@ -79,12 +79,12 @@ class DWServer:
     def cmdStat(self, cmd):
         info = self.conn.read(STATSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdStat timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdStat timeout getting info" % (ord(cmd)))
             return
         (disk, stat) = unpack(">BB", info)
         if self.debug:
-            print "cmd=%0x cmdStat disk=%d stat=%s" % (
-                ord(cmd), disk, hex(stat))
+            print("cmd=%0x cmdStat disk=%d stat=%s" % (
+                ord(cmd), disk, hex(stat)))
 
     def cmdRead(self, cmd, flags=''):
         disk = -1
@@ -92,14 +92,14 @@ class DWServer:
         rc = E_OK
         info = self.conn.read(INFOSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdRead timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdRead timeout getting info" % (ord(cmd)))
             return
             # rc = E_READ
             # rc = E_CRC # force a re-read
         # if rc == E_OK:
         (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
         if self.debug:
-            print "cmd=%0x cmdRead disk=%d lsn=%d" % (ord(cmd), disk, lsn)
+            print("cmd=%0x cmdRead disk=%d lsn=%d" % (ord(cmd), disk, lsn))
         data = NULL_SECTOR
         if rc == E_OK:
             if self.files[disk] is None:
@@ -122,7 +122,7 @@ class DWServer:
                 raise
                 rc = E_SEEK
                 data = NULL_SECTOR
-                print "   rc=%d" % rc
+                print("   rc=%d" % rc)
         if rc == E_OK:
             try:
                 data = self.files[disk].file.read(SECSIZ)
@@ -135,7 +135,7 @@ class DWServer:
         self.conn.write(dwCrc16(data))
         self.conn.write(data)
         if self.debug:
-            print "   rc=%d" % rc
+            print("   rc=%d" % rc)
 
     def cmdReRead(self, cmd):
         self.cmdRead(cmd, 'R')
@@ -147,7 +147,7 @@ class DWServer:
         flags = ''
         info = self.conn.read(INFOSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdReadEx timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdReadEx timeout getting info" % (ord(cmd)))
             return
             # rc = E_READ
             # rc = E_CRC # force a re-read
@@ -199,7 +199,7 @@ class DWServer:
 
         crc = self.conn.read(CRCSIZ, 1)
         if not crc:
-            print "cmd=%0x cmdReadEx timeout getting crc" % (ord(cmd))
+            print("cmd=%0x cmdReadEx timeout getting crc" % (ord(cmd)))
             # return
             rc = E_CRC
         # print "   len(info)=%d" % len(info)
@@ -207,16 +207,16 @@ class DWServer:
 
         if rc == E_OK:
             if crc != dataCrc:
-                print "CRC: read", hex(
+                print("CRC: read", hex(
                     unpack(
                         ">H", crc)[0]), "expected", hex(
                     unpack(
-                        ">H", dataCrc)[0])
+                        ">H", dataCrc)[0]))
                 rc = E_CRC
         self.conn.write(chr(rc))
         if self.debug or rc != E_OK:
-            print "cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
-                ord(cmd), disk, lsn, rc, flags)
+            print("cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
+                ord(cmd), disk, lsn, rc, flags))
         # print "   rc=%d" % rc
 
     def cmdReReadEx(self, cmd):
@@ -230,21 +230,21 @@ class DWServer:
         data = ''
         info = self.conn.read(INFOSIZ, self.timeout)
         if not info:
-            print "cmd=%0x cmdWrite timeout getting info" % (ord(cmd))
+            print("cmd=%0x cmdWrite timeout getting info" % (ord(cmd)))
             return
             # rc = E_WRITE
             # rc = E_CRC # force a re-write
         if rc == E_OK:
             data = self.conn.read(SECSIZ, self.timeout)
         if not data:
-            print "cmd=%0x cmdWrite timeout getting data" % (ord(cmd))
+            print("cmd=%0x cmdWrite timeout getting data" % (ord(cmd)))
             # return
             # rc = E_WRITE
             rc = E_CRC  # force a re-write
         if rc == E_OK:
             crc = self.conn.read(CRCSIZ, self.timeout)
             if not crc:
-                print "cmd=%0x cmdWrite timeout getting crc" % (ord(cmd))
+                print("cmd=%0x cmdWrite timeout getting crc" % (ord(cmd)))
                 # return
                 rc = E_CRC  # force a re-write
             else:
@@ -278,7 +278,7 @@ class DWServer:
                 rc = E_WRITE
                 if e.message == 'File not open for writing':
                     rc = E_WRPROT
-                print traceback.print_exc()
+                print(traceback.print_exc())
         if rc == E_OK:
             if (lsn == 0) or (
                     not self.files[disk].os9Image and lsn >= self.files[disk].maxLsn):
@@ -287,8 +287,8 @@ class DWServer:
         # 	rc=E_CRC
         self.conn.write(chr(rc))
         if self.debug or rc != E_OK:
-            print "cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
-                ord(cmd), disk, lsn, rc, flags)
+            print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
+                ord(cmd), disk, lsn, rc, flags))
         # print "   rc=%d" % rc
 
     def cmdReWrite(self, cmd):
@@ -330,12 +330,12 @@ class DWServer:
 
         self.conn.write(data)
         if self.debug and msg:
-            print "cmd=%0x serRead %s" % (ord(cmd), msg)
+            print("cmd=%0x serRead %s" % (ord(cmd), msg))
 
     # XXX
     def cmdReset(self, cmd):
         if self.debug:
-            print "cmd=%0x cmdReset" % ord(cmd)
+            print("cmd=%0x cmdReset" % ord(cmd))
 
     # XXX
     def cmdInit(self, cmd):
@@ -347,31 +347,31 @@ class DWServer:
             mode = self.files[drive].mode
             self.close(drive)
             self.open(drive, path, mode=mode, stream=stream)
-            print "cmdInit: reset(%d, %s)" % (int(drive), path)
+            print("cmdInit: reset(%d, %s)" % (int(drive), path))
         for channel in self.channels:
             self.channels[channel].close()
             if self.debug:
-                print(
+                print((
                     "cmd=%0x cmdInit channel=%d closed" %
-                    (ord(cmd), ord(channel)))
-        for channel in self.channels.keys():
+                    (ord(cmd), ord(channel))))
+        for channel in list(self.channels.keys()):
             del self.channels[channel]
         if self.debug:
-            print "cmd=%0x cmdInit" % ord(cmd)
+            print("cmd=%0x cmdInit" % ord(cmd))
 
     def cmdNop(self, cmd):
         if self.debug:
-            print "cmd=%0x cmdNop" % ord(cmd)
+            print("cmd=%0x cmdNop" % ord(cmd))
 
     # XXX
     def cmdTerm(self, cmd):
         if self.debug:
-            print "cmd=%0x cmdTerm" % ord(cmd)
+            print("cmd=%0x cmdTerm" % ord(cmd))
 
     def cmdDWInit(self, cmd):
         clientID = self.conn.read(1, self.timeout)
         if self.debug:
-            print "cmd=%0x cmdDWInit" % ord(cmd)
+            print("cmd=%0x cmdDWInit" % ord(cmd))
         self.conn.write(chr(0xff))
 
     def cmdTime(self, cmd):
@@ -385,181 +385,181 @@ class DWServer:
         t += chr(now.tm_sec)
         self.conn.write(t)
         if self.debug:
-            print "cmd=%0x cmdTime %s" % (ord(cmd), time.ctime())
+            print("cmd=%0x cmdTime %s" % (ord(cmd), time.ctime()))
 
     def cmdSerSetStat(self, cmd):
         channel = self.conn.read(1, self.timeout)
         if not channel:
-            print("cmd=%0x cmdSerSetStat timeout getting channel" % (ord(cmd)))
+            print(("cmd=%0x cmdSerSetStat timeout getting channel" % (ord(cmd))))
             return
         # if channel not in self.channels:
         # 	print("cmd=%0x cmdSerSetStat bad channel=%d" % (ord(cmd),ord(channel)))
         # 	return
         code = self.conn.read(1, self.timeout)
         if not code:
-            print(
+            print((
                 "cmd=%0x cmdSerSetStat channel=%d timeout getting code" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         data = ''
         if code == SS_Open:
             self.channels[channel] = DWVModem(self, channel, debug=self.debug)
             if self.debug:
-                print("cmd=%0x SS_Open channel=%d" % (ord(cmd), ord(channel)))
+                print(("cmd=%0x SS_Open channel=%d" % (ord(cmd), ord(channel))))
         if code == SS_ComSt:
             data = self.conn.read(26, self.timeout)
         if channel not in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdSerSetStat bad channel=%d code=%0x" %
-                (ord(cmd), ord(channel), ord(code)))
+                (ord(cmd), ord(channel), ord(code))))
         # 	return
         elif code == SS_Close:
             self.channels[channel].close()
             del self.channels[channel]
             if self.debug:
-                print("cmd=%0x SS_Close channel=%d" % (ord(cmd), ord(channel)))
+                print(("cmd=%0x SS_Close channel=%d" % (ord(cmd), ord(channel))))
         if self.debug:
-            print("cmd=%0x cmdSerSetStat channel=%d code=%0x len=%d" %
-                  (ord(cmd), ord(channel), ord(code), len(data)))
+            print(("cmd=%0x cmdSerSetStat channel=%d code=%0x len=%d" %
+                  (ord(cmd), ord(channel), ord(code), len(data))))
 
     def cmdSerGetStat(self, cmd):
         channel = self.conn.read(1, self.timeout)
         if not channel:
-            print("cmd=%0x cmdSerGetStat timeout getting channel" % (ord(cmd)))
+            print(("cmd=%0x cmdSerGetStat timeout getting channel" % (ord(cmd))))
             return
         if channel not in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdSerGetStat bad channel=%d" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         code = self.conn.read(1, self.timeout)
         if not code:
-            print(
+            print((
                 "cmd=%0x cmdSerGetStat channel=%d timeout getting code" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         if self.debug:
-            print(
+            print((
                 "cmd=%0x cmdSerGetStat channel=%d code=%0x" %
-                (ord(cmd), ord(channel), ord(code)))
+                (ord(cmd), ord(channel), ord(code))))
 
     def cmdSerInit(self, cmd):
         channel = self.conn.read(1, self.timeout)
         if not channel:
-            print("cmd=%0x cmdSerInit timeout getting channel" % (ord(cmd)))
+            print(("cmd=%0x cmdSerInit timeout getting channel" % (ord(cmd))))
             return
         if channel in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdSerInit existing channel=%d" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         self.channels[channel] = DWVModem(self, channel, debug=self.debug)
         if self.debug:
-            print("cmd=%0x cmdSerInit channel=%d" % (ord(cmd), ord(channel)))
+            print(("cmd=%0x cmdSerInit channel=%d" % (ord(cmd), ord(channel))))
 
     def cmdSerTerm(self, cmd):
         channel = self.conn.read(1, self.timeout)
         if not channel:
-            print("cmd=%0x cmdSerTerm timout getting channel" % (ord(cmd)))
+            print(("cmd=%0x cmdSerTerm timout getting channel" % (ord(cmd))))
             return
         if channel not in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdSerTerm bad channel=%d" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         self.channels[channel].close()
         del self.channels[channel]
         if self.debug:
-            print("cmd=%0x cmdSerTerm channel=%d" % (ord(cmd), ord(channel)))
+            print(("cmd=%0x cmdSerTerm channel=%d" % (ord(cmd), ord(channel))))
 
     def cmdFastWrite(self, cmd):
         channel = chr(ord(cmd) - 0x80)
         if channel not in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdFastWrite bad channel=%d" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         byte = self.conn.read(1, self.timeout)
         if not byte:
-            print(
+            print((
                 "cmd=%0x cmdFastWrite channel=%d timeout" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         self.channels[channel].write(byte)
         self.channels[channel]._cmdWorker()
         if self.debug:
-            print(
+            print((
                 "cmd=%0x cmdFastWrite channel=%d byte=%0x" %
-                (ord(cmd), ord(channel), ord(byte)))
+                (ord(cmd), ord(channel), ord(byte))))
 
     def cmdSerReadM(self, cmd):
         channel = self.conn.read(1, self.timeout)
         if not channel:
-            print("cmd=%0x cmdSerReadM timout getting channel" % (ord(cmd)))
+            print(("cmd=%0x cmdSerReadM timout getting channel" % (ord(cmd))))
             return
         if channel not in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdSerReadM bad channel=%d" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         num = self.conn.read(1, self.timeout)
         if not num:
-            print(
+            print((
                 "cmd=%0x cmdSerReadM channel=%d timeout getting count" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         data = self.channels[channel].read(ord(num))
         self.conn.write(data)
         if self.debug:
-            print(
+            print((
                 "cmd=%0x cmdSerReadM channel=%d num=%d" %
-                (ord(cmd), ord(channel), ord(num)))
+                (ord(cmd), ord(channel), ord(num))))
 
     def cmdSerWriteM(self, cmd):
         channel = self.conn.read(1, self.timeout)
         if not channel:
-            print("cmd=%0x cmdSerWriteM timout getting channel" % (ord(cmd)))
+            print(("cmd=%0x cmdSerWriteM timout getting channel" % (ord(cmd))))
             return
         if channel not in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdSerWriteM bad channel=%d" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         num = self.conn.read(1, self.timeout)
         if not num:
-            print(
+            print((
                 "cmd=%0x cmdSerWriteM channel=%d timeout getting count" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         data = self.conn.read(ord(num), self.timeout)
         self.channels[channel].write(data)
         if self.debug:
-            print(
+            print((
                 "cmd=%0x cmdSerWriteM channel=%d num=%d" %
-                (ord(cmd), ord(channel), ord(num)))
+                (ord(cmd), ord(channel), ord(num))))
         self.channels[channel]._cmdWorker()
 
     def cmdSerWrite(self, cmd):
         channel = self.conn.read(1, self.timeout)
         if not channel:
-            print("cmd=%0x cmdSerWrite timout getting channel" % (ord(cmd)))
+            print(("cmd=%0x cmdSerWrite timout getting channel" % (ord(cmd))))
             return
         if channel not in self.channels:
-            print(
+            print((
                 "cmd=%0x cmdSerWrite bad channel=%d" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         byte = self.conn.read(1, self.timeout)
         if not byte:
-            print(
+            print((
                 "cmd=%0x cmdSerWrite channel=%d timeout getting byte" %
-                (ord(cmd), ord(channel)))
+                (ord(cmd), ord(channel))))
             return
         self.channels[channel].write(byte)
         if self.debug:
-            print(
+            print((
                 "cmd=%0x cmdSerWrite channel=%d byte=%0x" %
-                (ord(cmd), ord(channel), ord(byte)))
+                (ord(cmd), ord(channel), ord(byte))))
         self.channels[channel]._cmdWorker()
 
     def cmdPrint(self, cmd):
@@ -567,24 +567,24 @@ class DWServer:
         if self.vprinter:
             self.vprinter.write(data)
         else:
-            print(
+            print((
                 "cmd=%0x cmdPrint byte=%0x WARN: printing not enabled" %
-                (ord(cmd), ord(data)))
+                (ord(cmd), ord(data))))
         if self.debug:
-            print("cmd=%0x cmdPrint byte=%0x" % (ord(cmd), ord(data)))
+            print(("cmd=%0x cmdPrint byte=%0x" % (ord(cmd), ord(data))))
 
     def cmdPrintFlush(self, cmd):
         if self.vprinter:
             self.vprinter.printFlush()
         else:
-            print(
+            print((
                 "cmd=%0x cmdPrintFlush WARN: printing not enabled" %
-                (ord(cmd)))
+                (ord(cmd))))
         if self.debug:
-            print("cmd=%0x cmdPrintFlush" % (ord(cmd)))
+            print(("cmd=%0x cmdPrintFlush" % (ord(cmd))))
 
     def cmdErr(self, cmd):
-        print("cmd=%0x cmdErr" % ord(cmd))
+        print(("cmd=%0x cmdErr" % ord(cmd)))
         # raise Exception("cmd=%0x cmdErr" % ord(cmd))
 
     # ## EmCee Server # ##
@@ -661,26 +661,26 @@ class DWServer:
         error = 0
         info = self.conn.read(2, self.timeout)
         if not info:
-            print(
+            print((
                 "cmd=%0x cmdEmCeeLoadFile timout getting command info" %
-                (ord(cmd)))
+                (ord(cmd))))
             error = E_MC_IO  # IO ERROR
         if not error:
             ftyp = ord(info[0])
             fnamelen = ord(info[1])
             fname = self.conn.read(fnamelen, self.timeout)
             if not fname:
-                print(
+                print((
                     "cmd=%0x cmdEmCeeLoadFile timout getting file name" %
-                    (ord(cmd)))
+                    (ord(cmd))))
                 error = E_MC_FN
         if not error:
             error = self._emCeeLoadFile(0, fname, 'rb', ftyp)
         if error:
-            print("cmd=%0x cmdEmCeeLoadFile error=%d" % (ord(cmd), error))
+            print(("cmd=%0x cmdEmCeeLoadFile error=%d" % (ord(cmd), error)))
             return
         elif self.debug:
-            print("cmd=%0x cmdEmCeeLoadFile" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeLoadFile" % ord(cmd)))
 
     def cmdEmCeeOpenFile(self, cmd):
         fmodes = {
@@ -691,9 +691,9 @@ class DWServer:
         error = 0
         info = self.conn.read(2, self.timeout)
         if not info:
-            print(
+            print((
                 "cmd=%0x cmdEmCeeLoadFile timout getting command info" %
-                (ord(cmd)))
+                (ord(cmd))))
             error = E_MC_IO  # IO ERROR
         if not error:
             finfo = ord(info[0])
@@ -702,9 +702,9 @@ class DWServer:
             fnamelen = ord(info[1])
             fname = self.conn.read(fnamelen, self.timeout)
             if not fname:
-                print(
+                print((
                     "cmd=%0x cmdEmCeeLoadFile timout getting file name" %
-                    (ord(cmd)))
+                    (ord(cmd))))
                 error = E_MC_FN
         if fmode.startswith('r'):
             error = self._emCeeLoadFile(
@@ -712,17 +712,17 @@ class DWServer:
         else:
             self._emCeeSaveFile(filnum, fname, fmode, 0, 0, error)
         if error:
-            print("cmd=%0x cmdEmCeeOpenFile error=%d" % (ord(cmd), error))
+            print(("cmd=%0x cmdEmCeeOpenFile error=%d" % (ord(cmd), error)))
             return
         elif self.debug:
-            print("cmd=%0x cmdEmCeeOpenFile" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeOpenFile" % ord(cmd)))
 
     def xxx(self):
         if error:
-            print("cmd=%0x cmdEmCeeLoadFile error=%d" % ord(cmd), error)
+            print(("cmd=%0x cmdEmCeeLoadFile error=%d" % ord(cmd), error))
             return
         elif self.debug:
-            print("cmd=%0x cmdEmCeeLoadFile" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeLoadFile" % ord(cmd)))
 
     def cmdEmCeeGetBlock(self, cmd):
         error = 0
@@ -734,7 +734,7 @@ class DWServer:
         if data:
             self.conn.write(data)
         if self.debug:
-            print("cmd=%0x cmdEmCeeGetBlock" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeGetBlock" % ord(cmd)))
 
     def cmdEmCeeNextBlock(self, cmd):
         error = 0
@@ -790,10 +790,10 @@ class DWServer:
         response = pack(">HHH", address, size, checksum)
         self.conn.write(response)
         if error:
-            print("cmd=%0x cmdEmCeeNextBlock error=%d" % (ord(cmd), error))
+            print(("cmd=%0x cmdEmCeeNextBlock error=%d" % (ord(cmd), error)))
             return
         if self.debug:
-            print("cmd=%0x cmdEmCeeNextBlock" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeNextBlock" % ord(cmd)))
 
     def cmdEmCeeSave(self, cmd):
         error = 0
@@ -807,7 +807,7 @@ class DWServer:
             error = E_MC_IO
         self._emCeeSaveFile(0, name, mode, exaddr, size, error)
         if self.debug:
-            print("cmd=%0x cmdEmCeeSave" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeSave" % ord(cmd)))
 
     def cmdEmCeeWriteBlock(self, cmd):
         error = 0
@@ -818,7 +818,7 @@ class DWServer:
             error = E_MC_IO
         if not error:
             (fileNum, size) = unpack(">BH", info)
-            print fileNum
+            print(fileNum)
             if not self.files[fileNum]:
                 error = E_MC_NO
         if not error:
@@ -842,7 +842,7 @@ class DWServer:
         dataCrc = dwCrc16(data)
         self.conn.write(dataCrc)
         if self.debug:
-            print("cmd=%0x cmdEmCeeWriteBlock" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeWriteBlock" % ord(cmd)))
 
     def _cmdEmCeeDirSendNext(self, error=0):
         length = 0
@@ -865,9 +865,9 @@ class DWServer:
         except BaseException:
             error = E_MC_IO
         if self.debug:
-            print(
+            print((
                 "cmd=%0x cmdEmCeeDirFile flag=%d length=%d" %
-                (ord(cmd), flag, length))
+                (ord(cmd), flag, length)))
         if not error and length > 0:
             try:
                 dirNam = self.conn.read(length, self.timeout)
@@ -886,7 +886,7 @@ class DWServer:
 
         self._cmdEmCeeDirSendNext(error)
         if self.debug:
-            print("cmd=%0x cmdEmCeeDirFile" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeDirFile" % ord(cmd)))
 
     def cmdEmCeeRetrieveName(self, cmd):
         error = 0
@@ -898,7 +898,7 @@ class DWServer:
             dirName = self.emCeeDir[self.emCeeDirIdx][:length]
             self.conn.write(dirName)
         if self.debug:
-            print("cmd=%0x cmdEmCeeRetrieveName" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeRetrieveName" % ord(cmd)))
 
     def cmdEmCeeDirName(self, cmd):
         error = 0
@@ -915,7 +915,7 @@ class DWServer:
 
         self._cmdEmCeeDirSendNext(error)
         if self.debug:
-            print("cmd=%0x cmdEmCeeDirName" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeDirName" % ord(cmd)))
 
     def cmdEmCeeSetDir(self, cmd):
         error = 0
@@ -938,18 +938,18 @@ class DWServer:
                 error = E_MC_NE
         self.conn.write(chr(error))
         if self.debug:
-            print("cmd=%0x cmdEmCeeSetDir" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeSetDir" % ord(cmd)))
 
     def cmdEmCeePrint(self, cmd):
         data = self.conn.read(1, self.timeout)
         if self.vprinter:
             self.vprinter.write(data)
         if self.debug:
-            print("cmd=%0x cmdEmCeePrint byte=%0x" % (ord(cmd), ord(data)))
+            print(("cmd=%0x cmdEmCeePrint byte=%0x" % (ord(cmd), ord(data))))
 
     def cmdEmCeeErr(self, cmd):
         if self.debug:
-            print("cmd=%0x cmdEmCeeErr" % ord(cmd))
+            print(("cmd=%0x cmdEmCeeErr" % ord(cmd)))
 
     # EmCee Command jump table
     mccommand = {
@@ -1036,15 +1036,15 @@ class TestConn:
         self.i = 0
 
     def read(self, n):
-        cmd = DWServer.dwcommand.keys()[self.i]
-        self.i = (self.i + 1) % len(DWServer.dwcommand.keys())
+        cmd = list(DWServer.dwcommand.keys())[self.i]
+        self.i = (self.i + 1) % len(list(DWServer.dwcommand.keys()))
         return cmd
 
     def write(self, buf):
         for c in buf:
             d = c if (ord(c) >= 32 and ord(c) < 128) else '.'
-            print "%s(%s) " % (hex(ord(c)), d),
-        print
+            print("%s(%s) " % (hex(ord(c)), d), end=' ')
+        print()
 
 
 if __name__ == '__main__':

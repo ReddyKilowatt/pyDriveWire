@@ -30,9 +30,9 @@ class DWPrinter:
             else:
                 self.source_file_name = tempfile.mktemp(".txt")
             self.source_file = open(self.source_file_name, "w")
-            print(
+            print((
                 "Printing: opening print buffer: %s" %
-                (self.source_file_name))
+                (self.source_file_name)))
         if data == '\r':
             self.source_file.write('\n')
             self.lastCr = True
@@ -58,11 +58,11 @@ class DWPrinter:
             printFileName = self._doPrintingPdf()
             os.unlink(self.source_file_name)
         else:
-            print("Printing to: %s" % (self.source_file_name))
+            print(("Printing to: %s" % (self.source_file_name)))
             printFileName = self.source_file_name
         if printFileName and self.printCmd:
             cmd = '%s %s' % (self.printCmd, printFileName)
-            print("Running Command: %s" % cmd)
+            print(("Running Command: %s" % cmd))
             os.system(cmd)
         self.printReset()
 
@@ -71,7 +71,7 @@ class DWPrinter:
             pdf_file_name = tempfile.mktemp(".pdf", self.printDir)
         else:
             pdf_file_name = tempfile.mktemp(".pdf")
-        print("Printing to: %s" % (pdf_file_name))
+        print(("Printing to: %s" % (pdf_file_name)))
 
         # ## FONT # ##
         from reportlab.pdfbase import pdfmetrics

@@ -1,10 +1,10 @@
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import re
 import traceback
 import sys
 
 if len(sys.argv) < 2:
-    print "Usage: pyDwCli <url> [<cmd>]"
+    print("Usage: pyDwCli <url> [<cmd>]")
     exit(1)
 
 url = sys.argv[1]
@@ -17,28 +17,28 @@ while True:
         if cmd:
             wdata = cmd
         else:
-            print "pyDriveWire>",
-            wdata = raw_input()
+            print("pyDriveWire>", end=' ')
+            wdata = input()
     except EOFError:
-        print
-        print "Bye!"
+        print()
+        print("Bye!")
         break
 
     # basic stuff
     if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
         # XXX Do some cleanup... how?
-        print "Bye!"
+        print("Bye!")
         break
 
     try:
         wdata = re.subn('.\b', '', wdata)[0]
         wdata = re.subn('.\x7f', '', wdata)[0]
-        conn = urllib.urlopen(url, wdata)
-        print conn.read()
+        conn = urllib.request.urlopen(url, wdata)
+        print(conn.read())
         if cmd:
             break
     except Exception as ex:
-        print "ERROR:: %s" % str(ex)
+        print("ERROR:: %s" % str(ex))
         traceback.print_exc()
 
 

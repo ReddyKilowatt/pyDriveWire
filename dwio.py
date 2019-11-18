@@ -1,8 +1,9 @@
 # !/usr/local/bin/python
+import queue
 import threading
-import Queue
+
+
 # from collections import deque
-from time import sleep
 
 
 class QPC:
@@ -55,7 +56,7 @@ class DWIO:
             self.rt.daemon = True
         else:
             self.rt = None
-        self.rq = Queue.Queue()
+        self.rq = queue.Queue()
         self.rb = QPC()
         self.rbuf = ''
         if self.threaded:
@@ -63,14 +64,14 @@ class DWIO:
             self.wt.daemon = True
         else:
             self.wt = None
-        self.wq = Queue.Queue()
+        self.wq = queue.Queue()
         self.connected = False
         self.debug = False
 
     def run(self, read=True, write=True):
         if not self.threaded:
             return
-        print "%s: Starting threads..." % self
+        print("%s: Starting threads..." % self)
         self.rt.start()
         self.wt.start()
 
@@ -81,7 +82,9 @@ class DWIO:
         return self._outWaiting()
 
     def _outWaiting(self):
-        if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        # if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        # Python 3
+        if self.rt and self.rt._is_stopped and self.rq.empty():
             self.rb.close()
         n = min(214, self.rb.get())
         # print "outWaiting",n
@@ -96,12 +99,17 @@ class DWIO:
         _t = timeout
         if not _t:
             _t = 1
+        # if self.threaded and not self.abort and self.rt and not self.rt.is_alive(
+        # ) and not self.rt._Thread__stopped:
+        # Python 3
         if self.threaded and not self.abort and self.rt and not self.rt.is_alive(
-        ) and not self.rt._Thread__stopped:
+        ) and not self.rt._is_stopped:
             # Start the background reader thread only
             # when someone asks to start reading from it
             self.rt.start()
-        if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        # if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        # Python 3
+        if self.rt and self.rt._is_stopped and self.rq.empty():
             self.rb.close()
         while not self.rq.empty() or not self.abort:
             d = ''
@@ -110,11 +118,12 @@ class DWIO:
                 self.rbuf = ''
             else:
                 try:
-
-                    d = self.rq.get(True, _t)
+                    # Python 3
+                    # d = self.rq.get(True, _t)
+                    d = self.rq.get(True, _t).decode()
                 except Exception as e:
                     if timeout:
-                        print str(e)
+                        print(str(e))
                         return ''
                     pass
             available = len(d)
@@ -129,6 +138,15 @@ class DWIO:
                 pos = d.find(ifs)
                 if pos >= 0:
                     required = pos + 1
+            # print('type(rdata): {}'.format(type(rdata)))
+            # print('type(required): {}'.format(type(required)))
+            # print('type(d): {}'.format(type(d)))
+
+            """
+            type(rdata): <class 'str'>
+            type(required): <class 'int'>
+            type(d): <class 'bytes'>
+            """
             rdata += d[:required]
 
             if (required < available):
@@ -144,7 +162,9 @@ class DWIO:
                 break
 
         # print "reading: %d (%s)" %(len(rdata),rdata if ord(rdata)>32 and ord(rdata)<128 else '.')
-        if self.rt and self.rt._Thread__stopped:
+        # if self.rt and self.rt._Thread__stopped:
+        # Python 3
+        if self.rt and self.rt._is_stopped:
             self.rb.close()
         self.rb.sub(len(rdata))
         return rdata
@@ -152,14 +172,20 @@ class DWIO:
     def write(self, data):
         # print "write"
         if self.abort:
-            print "w: abort"
+            print("w: abort")
             return 0
+        # if self.threaded and not self.abort and self.wt and not self.wt.is_alive(
+        # ) and not self.wt._Thread__stopped:
+        # Python 3
         if self.threaded and not self.abort and self.wt and not self.wt.is_alive(
-        ) and not self.wt._Thread__stopped:
+        ) and not self.wt._is_stopped:
+
             # Start the background reader thread only
             # when someone asks to start reading from it
             self.wt.start()
-        if self.wt and self.wt._Thread__stopped:
+        # if self.wt and self.wt._Thread__stopped:
+        # Python 3
+        if self.wt and self.wt._is_stopped:
             return 0
         self.wq.put(data)
         return len(data)
@@ -168,19 +194,19 @@ class DWIO:
         pass
 
     def close(self):
-        print "%s: Closing connection" % self
+        print("%s: Closing connection" % self)
         self.abort = True
         self.rb.close()
         self._close()
         # if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
         if self.rt:
             self.rt.abort = True
-            print "%s: Shutting down async read thread: %s" % (self, self.rt)
+            print("%s: Shutting down async read thread: %s" % (self, self.rt))
             self.rt.join()
             self.rt = None
         # if self.wt and self.wt.is_alive() and not self.wt._Thread__stopped:
         if self.wt:
-            print "%s: Shutting down async write thread: %s" % (self, self.wt)
+            print("%s: Shutting down async write thread: %s" % (self, self.wt))
             self.wt.abort = True
             self.wt.join()
             self.wt = None
@@ -192,18 +218,18 @@ class DWIO:
         pass
 
     def _readHandler(self):
-        print "%s: Starting _readHandler..." % self
+        print("%s: Starting _readHandler..." % self)
         while not self.abort:
             try:
                 d = self._read()
             except Exception as e:
-                print str(e)
+                print(str(e))
                 break
             if d:
                 # print "put: (%s)" % d
                 self.rb.add(len(d))
                 self.rq.put(d)
-        print "%s: Exiting _readHandler..." % self
+        print("%s: Exiting _readHandler..." % self)
 
     def _read(self, rlen=None):
         data = ''
@@ -217,7 +243,7 @@ class DWIO:
         return data
 
     def _writeHandler(self):
-        print "%s: Starting _writeHandler..." % self
+        print("%s: Starting _writeHandler..." % self)
         while not self.abort:
             d = ''
             try:
@@ -229,7 +255,7 @@ class DWIO:
             if d:
                 # "wh: %d" % len(d)
                 self._write(d)
-        print "%s: Exiting _writeHandler..." % self
+        print("%s: Exiting _writeHandler..." % self)
 
     def _write(self, data):
         # print "dwio._write %s" % self
@@ -316,7 +342,7 @@ class DWIOStdIo(DWIO):
         DWIO.__init__(self, blocking=True)
 
     def _read(self, count=None):
-        return raw_input() + '\n'
+        return input() + '\n'
 
     def _write(self, data):
         sys.stdout.write(data)

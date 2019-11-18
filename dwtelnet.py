@@ -30,28 +30,28 @@ class DWTelnet(DWIO):
             if data == '':
                 raise Exception("EOF")
         except Exception as ex:
-            print str(ex)
-            print "ERROR: Connection Closed"
+            print(str(ex))
+            print("ERROR: Connection Closed")
             self._close()
         if self.debug and data != '':
-            print "tel read:", canonicalize(data)
+            print("tel read:", canonicalize(data))
         return data
 
     def _write(self, data):
         if not self.isConnected():
             return 0
         if self.debug and data != '':
-            print "tel write:", canonicalize(data)
+            print("tel write:", canonicalize(data))
         try:
             self.conn.write(data)
         except Exception as ex:
-            print str(ex)
-            print "ERROR: Connection Closed"
+            print(str(ex))
+            print("ERROR: Connection Closed")
             self._close()
         return len(data)
 
     def _close(self):
-        print "Closing Connection..."
+        print("Closing Connection...")
         try:
             self.conn.close()
         except BaseException:
@@ -86,14 +86,14 @@ if __name__ == '__main__':
     try:
         sock.connect()
         while True:
-            print ">",
-            wdata = raw_input()
+            print(">", end=' ')
+            wdata = input()
             sock.write(wdata)
             # sock.write("\n> ")
             # print "main: Wrote %d bytes" % len(wdata)
             rdata = sock.readline()
             # print "main: Read %d bytes" % len(rdata)
-            print rdata,
+            print(rdata, end=' ')
     finally:
         cleanup()
 

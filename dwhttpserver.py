@@ -1,5 +1,5 @@
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-from urlparse import parse_qs
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs
 import cgi
 import threading
 from dwcommand import DWParser
@@ -62,10 +62,10 @@ class GP(BaseHTTPRequestHandler):
                 qd = parse_qs(self.path[qm + 1:])
                 name = qd['name'][0]
                 drive = qd['drive'][0]
-                print "upload drive: %s name: %s" % (drive, name)
+                print("upload drive: %s name: %s" % (drive, name))
                 # fileName = tempfile.mktemp(prefix=name.split('/')[-1].split('.')[0], suffix='.'+name.split('.')[-1])
                 fileName = os.path.join(tempfile.gettempdir(), name)
-                print fileName
+                print(fileName)
                 with open(fileName, 'wb') as f:
                     comma = data.index(',')
                     f.write(base64.b64decode(data[comma + 1:]))
@@ -101,7 +101,7 @@ class DWHttpServer:
     def run(self, server_class=HTTPServer, handler_class=GP, port=8088):
         server_address = ('', port)
         httpd = server_class(server_address, handler_class)
-        print 'Server running at localhost:%s...' % port
+        print('Server running at localhost:%s...' % port)
         httpd.serve_forever()
 
 
@@ -117,7 +117,7 @@ wdata = raw_input()
 
 if __name__ == '__main__':
     r = DWHttpServer(None, 8088)
-    wdata = raw_input()
+    wdata = input()
 
 
 # vim: ts=4 sw=4 sts=4 expandtab
