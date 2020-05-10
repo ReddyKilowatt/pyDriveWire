@@ -100,12 +100,17 @@ class DWIO:
         _t = timeout
         if not _t:
             _t = 1
+        # if self.threaded and not self.abort and self.rt and not self.rt.is_alive(
+        # ) and not self.rt._Thread__stopped:
+        # Python 3
         if self.threaded and not self.abort and self.rt and not self.rt.is_alive(
-        ) and not self.rt._Thread__stopped:
+        ) and not self.rt._is_stopped:
             # Start the background reader thread only
             # when someone asks to start reading from it
             self.rt.start()
-        if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        # if self.rt and self.rt._Thread__stopped and self.rq.empty():
+        # Python 3
+        if self.rt and self.rt._is_stopped and self.rq.empty():
             self.rb.close()
         while not self.rq.empty() or not self.abort:
             d = ''
@@ -148,7 +153,9 @@ class DWIO:
                 break
 
         # print "reading: %d (%s)" %(len(rdata),rdata if ord(rdata)>32 and ord(rdata)<128 else '.')
-        if self.rt and self.rt._Thread__stopped:
+        # if self.rt and self.rt._Thread__stopped:
+        # Python 3
+        if self.rt and self.rt._is_stopped:
             self.rb.close()
         self.rb.sub(len(rdata))
         return rdata
@@ -158,12 +165,17 @@ class DWIO:
         if self.abort:
             print("w: abort")
             return 0
+        # if self.threaded and not self.abort and self.wt and not self.wt.is_alive(
+        # ) and not self.wt._Thread__stopped:
+        # Python 3
         if self.threaded and not self.abort and self.wt and not self.wt.is_alive(
-        ) and not self.wt._Thread__stopped:
+        ) and not self.wt._is_stopped:
             # Start the background reader thread only
             # when someone asks to start reading from it
             self.wt.start()
-        if self.wt and self.wt._Thread__stopped:
+        # if self.wt and self.wt._Thread__stopped:
+        # Python 3
+        if self.wt and self.wt._is_stopped:
             return 0
         self.wq.put(data)
         return len(data)
