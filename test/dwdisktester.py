@@ -27,6 +27,7 @@ def worker(cs):
       print("Listening again...")
 
 if len(sys.argv) < 2:
+   print('ERROR: You must pass the name of a disk image as an argument')
    exit(1)
 s = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
