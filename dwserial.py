@@ -46,7 +46,7 @@ class DWSerial(DWIO):
             data = self.ser.read()
 
         if self.debug and data:
-            print "serread: len=%d %s" % (len(data), dwlib.canonicalize(data))
+            print("serread: len=%d %s" % (len(data), dwlib.canonicalize(data)))
         return data
 
     def _write(self, data):
@@ -54,7 +54,7 @@ class DWSerial(DWIO):
             return -1
         # time.sleep(0.010)
         if self.debug and data:
-            print "serwrite: len=%d %s" % (len(data), dwlib.canonicalize(data))
+            print("serwrite: len=%d %s" % (len(data), dwlib.canonicalize(data)))
         return self.ser.write(data)
 
     def _in_waiting(self):
@@ -65,9 +65,9 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: %s <port> <speed>" % (sys.argv[0]))
+        print(("Usage: %s <port> <speed>" % (sys.argv[0])))
         print('')
-        print('\t%s /dev/tty.usbserial-FTF4ZN9S 19200' % sys.argv[0])
+        print(('\t%s /dev/tty.usbserial-FTF4ZN9S 19200' % sys.argv[0]))
         print('')
         sys.exit(1)
 
@@ -83,12 +83,12 @@ if __name__ == '__main__':
 
     try:
         while True:
-            wdata = raw_input()
+            wdata = input()
             ser.write(wdata)
-            print "main: Wrote %d bytes" % len(wdata)
+            print("main: Wrote %d bytes" % len(wdata))
             rdata = ser.read(len(wdata))
-            print "main: Read %d bytes" % len(rdata)
-            print rdata
+            print("main: Read %d bytes" % len(rdata))
+            print(rdata)
     finally:
         cleanup()
 

@@ -84,8 +84,8 @@ if __name__ == '__main__':
     ]
 
     for s in strs:
-        print "==="
-        print canonicalize(s)
+        print("===")
+        print(canonicalize(s))
 
 
 # vim: ts=4 sw=4 sts=4 expandtab

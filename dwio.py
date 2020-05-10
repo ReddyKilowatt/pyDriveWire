@@ -1,6 +1,6 @@
 # !/usr/local/bin/python
 import threading
-import Queue
+import queue
 # from collections import deque
 from time import sleep
 
@@ -55,7 +55,7 @@ class DWIO:
             self.rt.daemon = True
         else:
             self.rt = None
-        self.rq = Queue.Queue()
+        self.rq = queue.Queue()
         self.rb = QPC()
         self.rbuf = ''
         if self.threaded:
@@ -63,7 +63,7 @@ class DWIO:
             self.wt.daemon = True
         else:
             self.wt = None
-        self.wq = Queue.Queue()
+        self.wq = queue.Queue()
         self.connected = False
         self.debug = debug
 
@@ -118,7 +118,7 @@ class DWIO:
                     d = self.rq.get(True, _t)
                 except Exception as e:
                     if timeout:
-                        print str(e)
+                        print(str(e))
                         return ''
                     pass
             available = len(d)
@@ -156,7 +156,7 @@ class DWIO:
     def write(self, data):
         # print "write"
         if self.abort:
-            print "w: abort"
+            print("w: abort")
             return 0
         if self.threaded and not self.abort and self.wt and not self.wt.is_alive(
         ) and not self.wt._Thread__stopped:
@@ -203,7 +203,7 @@ class DWIO:
             try:
                 d = self._read()
             except Exception as e:
-                print(str(e))
+                print((str(e)))
                 break
             if d:
                 # print "put: (%s)" % d
@@ -247,7 +247,7 @@ class DWIOStdIo(DWIO):
         DWIO.__init__(self, blocking=True)
 
     def _read(self, count=None):
-        return raw_input() + '\n'
+        return input() + '\n'
 
     def _write(self, data):
         sys.stdout.write(data)

@@ -47,7 +47,7 @@ class DWSocket(DWIO):
         try:
             (ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
         except Exception as e:
-            print(str(e))
+            print((str(e)))
             raise Exception("Connection closed")
             self._close()
         if any(ri):
@@ -72,7 +72,7 @@ class DWSocket(DWIO):
         try:
             (_, wi, _) = select.select([], [self.conn.fileno()], [], 1)
         except Exception as e:
-            print(str(e))
+            print((str(e)))
             raise ("Connection closed")
             self._close()
             n = -1
@@ -80,9 +80,9 @@ class DWSocket(DWIO):
             try:
                 n = self.conn.send(data)
                 if self.debug:
-                    print "socket write:", self, canonicalize(data)
+                    print("socket write:", self, canonicalize(data))
             except Exception as e:
-                print(str(e))
+                print((str(e)))
                 self._close()
                 n = -1
 
@@ -95,7 +95,7 @@ class DWSocket(DWIO):
         try:
             (ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
         except Exception as e:
-            print(str(e))
+            print((str(e)))
             self._print("Connection closed: %s" % self)
             self._close()
         return any(ri)
@@ -108,7 +108,7 @@ class DWSocket(DWIO):
         try:
             (_, wi, _) = select.select([], [self.conn.fileno()], [], 1)
         except Exception as e:
-            print str(e)
+            print(str(e))
             # print "Connection closed",self
             # self._close()
         return any(wi)
@@ -168,7 +168,7 @@ class DWSocketServer(DWSocket):
                 (self.conn, self.addr) = self.sock.accept()
                 self._print("Accepted Connection: %s" % str(self.addr))
             except Exception as ex:
-                print("Server Aborted", str(ex))
+                print(("Server Aborted", str(ex)))
 
             if self.conn:
                 break
@@ -183,7 +183,7 @@ class DWSocketServer(DWSocket):
         try:
             data = DWSocket._read(self, count)
         except Exception as e:
-            print(str(e))
+            print((str(e)))
             self.conn.close()
             self.conn = None
         return data
@@ -207,7 +207,7 @@ class DWSocketListener(DWSocket):
 
     def _accept(self):
         try:
-            print("%s: Listening on: %s" % (self, self.port))
+            print(("%s: Listening on: %s" % (self, self.port)))
             r = self.sock.listen(0)
             fd = self.sock.fileno()
 
@@ -219,17 +219,17 @@ class DWSocketListener(DWSocket):
                 if any(ri):
                     try:
                         (sock, addr) = self.sock.accept()
-                        print("%s: Accepted Connection: %s" % (self, str(addr)))
+                        print(("%s: Accepted Connection: %s" % (self, str(addr))))
                         conn = DWSocket(conn=sock, port=self.port, addr=addr)
                         self.connections.append(conn)
                         if self.acceptCb:
                             self._print("%s: Calling Callback: %s" % (self, self.acceptCb))
                             self.acceptCb(conn)
                     except Exception as ex:
-                        print("Listener socket failure, port=%s" % (self.port, str(ex)))
+                        print(("Listener socket failure, port=%s" % (self.port, str(ex))))
 
         except Exception as ex:
-            print("Server Aborted, port=%s" % self.port, str(ex))
+            print(("Server Aborted, port=%s" % self.port, str(ex)))
         finally:
             self._close()
             self.sock.close()
@@ -278,9 +278,9 @@ class DWSimpleSocket:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 self.sock.connect((self.host, self.port))
-                print(
+                print((
                     "socket: %s: Connected to %s:%s" %
-                    (self, self.host, self.port))
+                    (self, self.host, self.port)))
                 self.conn = self.sock
             except BaseException:
                 if self.reconnect:
@@ -293,11 +293,11 @@ class DWSimpleSocket:
         while not self.abort and len(data) < n:
             d = self.conn.recv(n)
             while not self.abort and d == '' and self.reconnect:
-                print("socket: %s: Disconnected" % (self))
+                print(("socket: %s: Disconnected" % (self)))
                 self.close()
-                print(
+                print((
                     "socket: %s: Reconnecting to %s:%s" %
-                    (self, self.host, self.port))
+                    (self, self.host, self.port)))
                 self.connect()
                 d = self.conn.recv(n)
             if d != '':
@@ -308,7 +308,7 @@ class DWSimpleSocket:
         return self.conn.send(data)
 
     def close(self):
-        print("socket: %s: Closing" % (self))
+        print(("socket: %s: Closing" % (self)))
         if self.conn:
             self.conn.close()
             self.conn = None
@@ -325,7 +325,7 @@ if __name__ == '__main__':
     sock = DWSocketServer()
 
     def cleanup():
-        print "main: Closing sockial port."
+        print("main: Closing sockial port.")
         sock.close()
     import atexit
     atexit.register(cleanup)
@@ -333,14 +333,14 @@ if __name__ == '__main__':
     try:
         sock.accept()
         while True:
-            print ">",
-            wdata = raw_input()
+            print(">", end=' ')
+            wdata = input()
             sock.write(wdata)
             sock.write("\n> ")
             # print "main: Wrote %d bytes" % len(wdata)
             rdata = sock.readline()
             # print "main: Read %d bytes" % len(rdata)
-            print rdata,
+            print(rdata, end=' ')
     finally:
         cleanup()
 

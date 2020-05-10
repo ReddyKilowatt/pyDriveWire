@@ -6,7 +6,7 @@ from dwtelnet import DWTelnet
 import os
 import sys
 import re
-import urlparse
+import urllib.parse
 import tempfile
 
 
@@ -32,7 +32,7 @@ class ParseNode:
         if r:
             return r
         # search partial
-        allNodes = self.nodes.keys()
+        allNodes = list(self.nodes.keys())
         for i in range(len(key) + 1):
             s = key[:i]
             nodes = [n for n in allNodes if n.startswith(s)]
@@ -50,7 +50,7 @@ class ParseNode:
         if self.name:
             p.append(self.name)
         p.append("commands:")
-        p.extend(self.nodes.keys())
+        p.extend(list(self.nodes.keys()))
         return "%s" % (' '.join(p))
 
 
@@ -348,7 +348,7 @@ class DWParser:
         out.append("Port   Status")
         out.append("-----  --------------------------------------")
         i = 0
-        for i, ch in self.server.channels.items():
+        for i, ch in list(self.server.channels.items()):
             co = ch.conn
             connstr = "State: %s Class: %s" % (ch.getState(), ch.cmdClass)
             # connstr = " Online" if ch.online else "Offline"
@@ -462,7 +462,7 @@ class DWParser:
         return self.doConnect(data, telnet=False, interactive=True)
 
     def doConnect(self, data, telnet=False, interactive=False):
-        pr = urlparse.urlparse(data)
+        pr = urllib.parse.urlparse(data)
         if pr.scheme == 'telnet':
             d2 = pr.netloc
             telnet = True
@@ -475,8 +475,8 @@ class DWParser:
         if len(r) == 1:
             r.append('23')
         (host, port) = r
-        print "host (%s)" % host
-        print "port (%s)" % port
+        print("host (%s)" % host)
+        print("port (%s)" % port)
         if not host and not port:
             raise Exception("telnet: Bad Host/Port: %s" % data)
         try:
@@ -515,7 +515,7 @@ class DWParser:
         if not conn:
             raise Exception("Invalid connection: %s" % data)
         res = "OK killing connection %s\r\n" % data
-        print res
+        print(res)
         conn.binding = None
         conn.close()
         del self.server.connections[r]
@@ -525,7 +525,7 @@ class DWParser:
         # r = data.split(':')
 
         conn = self.server.connections.get(data, None)
-        print "Binding %s to %s" % (conn, data)
+        print("Binding %s to %s" % (conn, data))
         if not conn:
             raise Exception("Invalid connection: %s" % data)
         conn.binding = data
@@ -537,7 +537,7 @@ class DWParser:
         import traceback
         id2name = dict([(th.ident, th.name) for th in threading.enumerate()])
         code = []
-        for threadId, stack in sys._current_frames().items():
+        for threadId, stack in list(sys._current_frames().items()):
             code.append("\n# Thread: %s(%d)" %
                         (id2name.get(threadId, ""), threadId))
             for filename, lineno, name, line in traceback.extract_stack(stack):
@@ -628,7 +628,7 @@ class DWParser:
     def doMcAliasShow(self, data):
         r = ['Server Aliases',
              '==============']
-        for k, v in self.server.emCeeAliases.items():
+        for k, v in list(self.server.emCeeAliases.items()):
             r.append("Alias: %s Path: %s" % (k, v))
         return '\n'.join(r)
 
@@ -737,7 +737,7 @@ class DWParser:
         instance = args.get('instance', 0)
         if instance > 0:
             out += ['', '[%s]' % args['instName']]
-        for k, v in args.items():
+        for k, v in list(args.items()):
             if k in ['files', 'cmds', 'instances', 'config', 'instance', 'instName', 'daemon']:
                 continue
             if instance > 0 and k in ['experimental', 'uiPort', 'daemonStatus', 'daemonStop', 'daemonPidFile', 'daemonLogFile']:
@@ -781,7 +781,7 @@ class DWParser:
         def walkPt(pt, nodes=[]):
             nl = []
             # nodes += [pt.name]
-            for name, node in pt.nodes.items():
+            for name, node in list(pt.nodes.items()):
                 # print pt.name, name
                 if isinstance(node, ParseNode):
                     nl += walkPt(node, nodes + [name])
@@ -859,26 +859,26 @@ class DWRepl:
                 if len(self.server.instances) > 1:
                     server = self.parser.server
                     iprompt = '(%d)' % server.instance
-                print "pyDriveWire%s> " % iprompt,
-                wdata = raw_input()
+                print("pyDriveWire%s> " % iprompt, end=' ')
+                wdata = input()
             except EOFError:
-                print
-                print "Bye!"
+                print()
+                print("Bye!")
                 break
 
             # basic stuff
             if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
                 # XXX Do some cleanup... how?
-                print "Bye!"
+                print("Bye!")
                 break
 
             try:
                 wdata = re.subn('.\b', '', wdata)[0]
                 wdata = re.subn('.\x7f', '', wdata)[0]
                 r = self.parser.parse(wdata, True)
-                print r
+                print(r)
             except Exception as ex:
-                print "ERROR:: %s" % str(ex)
+                print("ERROR:: %s" % str(ex))
                 traceback.print_exc()
 
         self.server.conn.cleanup()

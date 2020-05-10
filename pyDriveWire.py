@@ -1,4 +1,5 @@
-# !/usr/local/bin/python
+#!python
+
 import serial
 from dwserial import DWSerial
 from dwsocket import DWSocketServer, DWSocket, DWSimpleSocket
@@ -187,7 +188,7 @@ def ParseArgs():
         err = "Serial connection must supply --speed and --port"
 
     if err:
-        print('\nERROR: %s\n' % err)
+        print(('\nERROR: %s\n' % err))
         parser.print_usage()
         sys.exit(1)
 
@@ -216,8 +217,15 @@ def _getOptNames(args, opts):
 
 
 def _getOpts(args, opts):
-    r = [eval('args.%s' % o) for o in list(opts)]
-    # print "getOpts", opts, r
+    """
+    https://stackoverflow.com/questions/29336616/eval-scope-in-python-2-vs-3
+    Python 3
+    """
+    # TODO
+    # r = [eval('args.%s' % o) for o in list(opts)]
+    r = []
+    for o in list(opts):
+        r.append(eval('args.%s' % o))
     return r
 
 
@@ -318,21 +326,21 @@ def ReadConfig(args):
                 if instance == 0:
                     # print key, accept, reject
                     if key in reject:
-                        print(
+                        print((
                             '%d: rejecting line from config file (R): %s' %
-                            (instance, line))
+                            (instance, line)))
                         continue
                     else:
                         v = eval('iargs.%s' % key)
                         has = key in defaultConfigValues
                         if v and has and v != defaultConfigValues[key]:
-                            print(
+                            print((
                                 '%d: rejecting line from config file (D): %s' %
-                                (instance, line))
+                                (instance, line)))
                         elif v and not has:
-                            print(
+                            print((
                                 '%d: rejecting line from config file (O): %s' %
-                                (instance, line))
+                                (instance, line)))
                         else:
                             # print(
                             #    '%d: accepting line from config file: %s' %
@@ -356,10 +364,10 @@ def ReadConfig(args):
 
 def CreateServer(args, instance, instances, lock):
     if args.accept:
-        print("Accept connection on %s" % args.port)
+        print(("Accept connection on %s" % args.port))
         conn = DWSocketServer(port=args.port, debug=args.debug)
     elif args.connect:
-        print("Connect to %s:%s" % (args.host, args.port))
+        print(("Connect to %s:%s" % (args.host, args.port)))
         conn = DWSimpleSocket(
             port=args.port,
             host=args.host,
@@ -368,8 +376,8 @@ def CreateServer(args, instance, instances, lock):
         conn.connect()
         conn.run()
     else:
-        print("Serial Port: %s at %s, RTS/CTS=%s" % (
-            args.port, args.speed, args.rtscts))
+        print(("Serial Port: %s at %s, RTS/CTS=%s" % (
+            args.port, args.speed, args.rtscts)))
         conn = DWSerial(args.port, args.speed, rtscts=args.rtscts, debug=args.debug)
         conn.connect()
 
@@ -386,7 +394,7 @@ def CreateServer(args, instance, instances, lock):
         cmds += ['dw server conn debug 1']
     cmds += args.cmds
     for cmd in cmds:
-        print parser.parse(cmd)
+        print((parser.parse(cmd)))
 
     return dws
 
@@ -411,14 +419,14 @@ def StartServer(args, dws):
             if i + 1 < len(args.files):
                 opt = args.files[i + 1].lower()
                 if opt.startswith('opt=')and len(opt) > 4:
-                    print "opt=%s" % opt
+                    print(("opt=%s" % opt))
                     for o in opt[4:].split(','):
-                        print "opt=%s" % o
+                        print(("opt=%s" % o))
                         if o == 'stream':
                             stream = True
                         elif o == 'ro':
                             mode = 'r'
-            print "stream=%s mode=%s" % (stream, mode)
+            print(("stream=%s mode=%s" % (stream, mode)))
             dws.open(drive, f, mode=mode, stream=stream)
             drive += 1
         if dws.instance == 0:
@@ -429,11 +437,11 @@ def StartServer(args, dws):
             if not args.daemon:
                 time.sleep(1)
                 print("")
-                print("*" * 40)
-                print("* pyDriveWire Server %s" % VERSION)
+                print(("*" * 40))
+                print(("* pyDriveWire Server %s" % VERSION))
                 print("*")
                 print("* Enter commands at the prompt")
-                print("*" * 40)
+                print(("*" * 40))
                 print("")
                 dwr = DWRepl(dws)
         dws.main()
@@ -505,7 +513,7 @@ if __name__ == '__main__':
         pidMsg = '\b'
         if pid:
             pidMsg = 'pid:%d' % pid
-        print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+        print(("pyDriveWire Server %s status:%s" % (pidMsg, status)))
     elif args.daemonStop:
         msg = ''
         if status == 'Running':
@@ -513,12 +521,12 @@ if __name__ == '__main__':
             msg = 'Stopped'
         else:
             msg = status
-        print "pyDriveWire Server pid:%s msg:%s" % (pid, msg)
+        print(("pyDriveWire Server pid:%s msg:%s" % (pid, msg)))
     elif args.daemon:
         daemon.start()
         pid = daemon.getPid()
         status = daemon.getStatus()
-        print "pyDriveWire Server %s status:%s" % (pidMsg, status)
+        print(("pyDriveWire Server %s status:%s" % (pidMsg, status)))
         sys.path.stdout.flush()
         sys.exit(0)
     else:

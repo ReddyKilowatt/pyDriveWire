@@ -5,9 +5,9 @@ import os
 from os import stat
 from struct import *
 import tempfile
-import urllib
-from urlparse import urlparse
-from urllib2 import Request, urlopen
+import urllib.request, urllib.parse, urllib.error
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 COCO_SECTOR_SIZE = 256
 COCO_DEFAULT_DISK_SIZE = 630
@@ -43,14 +43,14 @@ class DWFile:
         self.offset = 0
 
     def _delete(self):
-        print("Deleting temporary file: %s" % self.file.name)
+        print(("Deleting temporary file: %s" % self.file.name))
         os.unlink(self.file.name)
 
     def _doOpen(self):
         fileName = self.name
         if self.stream:
             self.remote = True
-            print("Enabling streaming mode for %s" % fileName)
+            print(("Enabling streaming mode for %s" % fileName))
             self.file = DwHttpStreamingFile(fileName, ssize=COCO_SECTOR_SIZE)
             return
         try:
@@ -59,8 +59,8 @@ class DWFile:
             if pp[0].lower() in ['http', 'https', 'ftp']:
                 fileName = tempfile.mktemp(prefix=self.name.split(
                     '/')[-1].split('.')[0], suffix='.' + self.name.split('.')[-1])
-                print("Downloading: %s" % (self.name))
-                urllib.urlretrieve(self.name, fileName)
+                print(("Downloading: %s" % (self.name)))
+                urllib.request.urlretrieve(self.name, fileName)
                 self.remote = True
         except ValueError:
             pass
@@ -262,7 +262,7 @@ class DwHttpStreamingFile:
         if uh.code >= 200 and uh.code < 300:
             content = uh.read()
         else:
-            print("%s %d %d" % (self.url, uh.code, len(content)))
+            print(("%s %d %d" % (self.url, uh.code, len(content))))
 
         return content
 
@@ -282,15 +282,15 @@ if __name__ == '__main__':
     dwf = DWFile(f)
     fmt = dwf.fmt
     print("Image File Info::")
-    print("Img File: %s" % dwf.name)
-    print("Img Total Sectors: %d" % dwf.maxLsn)
+    print(("Img File: %s" % dwf.name))
+    print(("Img Total Sectors: %d" % dwf.maxLsn))
     print(" ")
     print("Detected disk format::")
-    print("%s" % fmt['descr'])
-    print("Sectors: %d" % fmt['sectors'])
-    print("Tracks: %d" % fmt['tracks'])
-    print("Sides: %d" % fmt['sides'])
-    print("Bytes/Sector: %d" % fmt['bytes'])
+    print(("%s" % fmt['descr']))
+    print(("Sectors: %d" % fmt['sectors']))
+    print(("Tracks: %d" % fmt['tracks']))
+    print(("Sides: %d" % fmt['sides']))
+    print(("Bytes/Sector: %d" % fmt['bytes']))
 
 
 # vim: ts=4 sw=4 sts=4 expandtab

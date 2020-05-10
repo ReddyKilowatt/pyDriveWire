@@ -3,7 +3,7 @@ import wave
 import re
 from struct import *
 import tempfile
-import urllib
+import urllib.request, urllib.parse, urllib.error
 
 LEADER = '\x55' * 128
 
@@ -149,8 +149,8 @@ class CocoCas:
             n = self.name.index(':')
             fileName = tempfile.mktemp(prefix=self.name.split(
                 '/')[-1].split('.')[0], suffix='.' + self.name.split('.')[-1])
-            print("Downloading: %s" % (self.name))
-            urllib.urlretrieve(self.name, fileName)
+            print(("Downloading: %s" % (self.name)))
+            urllib.request.urlretrieve(self.name, fileName)
             self.remote = True
         except ValueError:
             pass
@@ -472,7 +472,7 @@ class CocoWavFile:
         b = 'U'
         while b == 'U':
             b = self, getByte(w)
-            print b
+            print(b)
         return b
 
     def read(self, count=None):
