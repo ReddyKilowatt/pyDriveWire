@@ -15,16 +15,16 @@ def worker(cs):
       while True:
          data = cs.recv(192)
          dl = len(data)
-         print dl
+         print(dl)
          if dl>0:
             written=0
             while written<dl:
                written +=cs.send(data[written:])
          else:
-            print "Connection dropped."
+            print("Connection dropped.")
             break
    finally:
-      print "Listening again..."
+      print("Listening again...")
 
 if len(sys.argv) < 2:
    exit(1)
@@ -38,14 +38,14 @@ if listen:
 if True:
    if listen:
       (cs, addr) = s.accept()
-      print "Accepted connection: %s" % str(addr)
+      print("Accepted connection: %s" % str(addr))
    else:
       #addr = "172.16.1.89"
       #addr = "192.168.4.1"
       addr = '127.0.0.1'
       port = 65504
       cs = socket.create_connection((addr, port))
-      print "connection to : %s:%s" % (addr,port)
+      print("connection to : %s:%s" % (addr,port))
 
    print("s")
    cs.send(OP_DWINIT)
@@ -55,7 +55,7 @@ if True:
    assert(ord(data) == 0xff)
    disk = 0
    for fileName in sys.argv[1:]:
-      print ("Checking: %s" % fileName)
+      print(("Checking: %s" % fileName))
       f = open(fileName)
       rc = E_OK
       lsn = 0
@@ -75,14 +75,14 @@ if True:
          cs.send(sc)
          # Get the RC
          rc = ord(cs.recv(1))
-         print("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", fc)[0]), hex(unpack(">H", sc)[0])))
+         print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", fc)[0]), hex(unpack(">H", sc)[0]))))
          assert(fc == sc)
-         print("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc))
+         print(("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc)))
          #msg = "%d ..." % lsn
          #msg+'\b'*len(msg),
          #print ".",
          lsn += 1
       
-      print("\nCompared %d sectors rc %d" % (lsn, rc))
+      print(("\nCompared %d sectors rc %d" % (lsn, rc)))
       assert(rc in [E_OK, E_EOF])
       f.close()

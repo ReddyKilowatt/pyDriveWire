@@ -13,7 +13,7 @@ def dwPrint(s, data, debug=False):
 
    if debug:
       print("printed data\n")
-      print(dwlib.canonicalize(data))
+      print((dwlib.canonicalize(data)))
 
 dws = socket.create_connection(('localhost', 65504))
 
