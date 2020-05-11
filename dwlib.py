@@ -8,10 +8,12 @@ def canonicalize(instr):
             break
         hs = ''
         cs = ''
-        for c in s:
-            n = ord(c)
+        # for c in s:
+        for n in s:
+            # Python3 ord() is no longer needed
+            #     n = ord(c)
             hs += "%02x" % n
-            cs += c if 32 < n < 127 else '.'
+            cs += chr(n) if 32 < n < 127 else '.'
         outt.append((pos, hs, cs))
         pos = npos
 
