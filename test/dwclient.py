@@ -9,6 +9,7 @@ from dwconstants import *
 
 import dwsocket
 
+PYTHON3_PORT = 65503 # for bringing up pDW on Python 3
 debug = False
 channel_open = False
 
@@ -80,7 +81,9 @@ def readChannel(s, channel, wait=False):
       wait=False
    return out
 
-s = dwsocket.DWSocket(port=65504)
+# Python3 bringup
+# s = dwsocket.DWSocket(port=65504)
+s = dwsocket.DWSocket(port=PYTHON3_PORT)
 s.debug = True
 s.connect()
 channel = 2

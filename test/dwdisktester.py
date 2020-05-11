@@ -1,15 +1,16 @@
 #!python
 import socket
-import threading
+#import threading
 import sys
-sys.path.append("..")
+# sys.path.append("..")
+sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
 from dwconstants import *
 from dwutil import *
 from struct import *
-from ctypes import *
+# from ctypes import *
 
 import time
-
+PYTHON3_PORT = 65503
 def worker(cs):
    try:
       while True:
@@ -33,8 +34,10 @@ s = socket.socket( socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 listen = False
 if listen:
-   print("Listening on port 65504...")
-   s.bind(('0.0.0.0', 65504))
+   # print("Listening on port 65504...")
+   print(f'Listening on PYTHON3 PORT: {PYTHON3_PORT} ...')
+   # s.bind(('0.0.0.0', 65504))
+   s.bind(('0.0.0.0', PYTHON3_PORT))
    s.listen(0)
 if True:
    if listen:
@@ -44,17 +47,20 @@ if True:
       #addr = "172.16.1.89"
       #addr = "192.168.4.1"
       addr = '127.0.0.1'
-      port = 65504
+      # port = 65504
+      port = PYTHON3_PORT
       cs = socket.create_connection((addr, port))
       print("connection to : %s:%s" % (addr,port))
 
    print("s")
-   cs.send(OP_DWINIT)
-   cs.send('A')
-   data = cs.recv(1)
+   cs.send(OP_DWINIT.encode('utf-8'))
+   cs.send('A'.encode('utf-8'))
+   data = cs.recv(1).decode()
    print("r")
+   print(f"Data after cs.recv(1): {data}")
    assert(ord(data) == 0xff)
    disk = 0
+   input('About to check disk\n"s')
    for fileName in sys.argv[1:]:
       print(("Checking: %s" % fileName))
       f = open(fileName)
