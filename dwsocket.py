@@ -42,7 +42,9 @@ class DWSocket(DWIO):
     def _read(self, count=256):
         data = None
         if self.abort or not self.conn:
-            return ''
+            # return ''
+            # Python3
+            return b''
         ri = []
         try:
             (ri, _, _) = select.select([self.conn.fileno()], [], [], 1)
@@ -55,7 +57,9 @@ class DWSocket(DWIO):
             data = self.conn.recv(count)
         # else:
             # print "dwsocket: waiting"
-        if data == '':
+        #if data == '':
+        #Python3
+        if data == b'':
             raise Exception("Connection closed")
             self._close()
         # if data:
@@ -126,7 +130,9 @@ class DWSocket(DWIO):
             # print str(e)
             # print "Connection closed"
         if any(ri + wi):
-            self._print("Closing: connection: %s" % self)
+            # self._print("Closing: connection: %s" % self)
+            # Python3
+            self._print(f'Closing: connection: {self}')
             try:
                 # self.conn.shutdown(socket.SHUT_RDWR)
                 self.conn.close()
@@ -179,7 +185,9 @@ class DWSocketServer(DWSocket):
         if not self.conn:
             self._print("accepting")
             self.accept()
-        data = ''
+        # data = ''
+        # Python3
+        data = b''
         try:
             data = DWSocket._read(self, count)
         except Exception as e:
@@ -289,10 +297,14 @@ class DWSimpleSocket:
                     raise
 
     def read(self, n=1, timeout=None):
-        data = ''
+        # data = ''
+        # Python3
+        data = b''
         while not self.abort and len(data) < n:
             d = self.conn.recv(n)
-            while not self.abort and d == '' and self.reconnect:
+            # while not self.abort and d == '' and self.reconnect:
+            #Python3
+            while not self.abort and d == b'' and self.reconnect:
                 print(("socket: %s: Disconnected" % (self)))
                 self.close()
                 print((
@@ -300,7 +312,9 @@ class DWSimpleSocket:
                     (self, self.host, self.port)))
                 self.connect()
                 d = self.conn.recv(n)
-            if d != '':
+            # if d != '':
+            # Python3
+            if d != b'':
                 data += d
         return data
 

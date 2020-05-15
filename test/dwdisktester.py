@@ -53,17 +53,21 @@ if True:
       print("connection to : %s:%s" % (addr,port))
 
    print("s")
-   cs.send(OP_DWINIT.encode('utf-8'))
-   cs.send('A'.encode('utf-8'))
-   data = cs.recv(1).decode()
+   cs.send(OP_DWINIT)
+   cs.send('A'.encode('UTF-8'))
+   data = cs.recv(1)
+   print(f'data after data = cs.recv(1): {type(data)}')
    print("r")
-   print(f"Data after cs.recv(1): {data}")
-   assert(ord(data) == 0xff)
+   print(f"Data after cs.recv(1): '{data}'")
+   # assert(ord(data) == 0xff)
+   # assert (data == 0xff) # python3
+   assert (data == b'\xff')  # python3
    disk = 0
-   input('About to check disk\n"s')
+   # input('About to check disk\n"s')
    for fileName in sys.argv[1:]:
       print(("Checking: %s" % fileName))
-      f = open(fileName)
+      # f = open(fileName)
+      f = open(fileName, 'rb') # Python3s
       rc = E_OK
       lsn = 0
       while rc == E_OK:

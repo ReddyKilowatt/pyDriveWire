@@ -1,6 +1,7 @@
 # !/usr/local/bin/python
-import threading
 import queue
+import select
+import threading
 # from collections import deque
 from time import sleep
 
@@ -57,7 +58,9 @@ class DWIO:
             self.rt = None
         self.rq = queue.Queue()
         self.rb = QPC()
-        self.rbuf = ''
+        #self.rbuf = ''
+        # Python3
+        self.rbuf = b''
         if self.threaded:
             self.wt = threading.Thread(target=self._writeHandler, args=())
             self.wt.daemon = True
@@ -96,6 +99,8 @@ class DWIO:
 
     def read(self, rlen=None, timeout=None, readLine=False, ifs='\n'):
         rdata = ''
+        # Python 3
+        rdata = b''
         pos = -1
         _t = timeout
         if not _t:
@@ -113,10 +118,14 @@ class DWIO:
         if self.rt and self.rt._is_stopped and self.rq.empty():
             self.rb.close()
         while not self.rq.empty() or not self.abort:
-            d = ''
+            # d = ''
+            # Python3
+            d = b''
             if self.rbuf:
                 d = self.rbuf
-                self.rbuf = ''
+                # self.rbuf = ''
+                # Python3
+                self.rbuf = b''
             else:
                 try:
 
@@ -124,7 +133,9 @@ class DWIO:
                 except Exception as e:
                     if timeout:
                         print(str(e))
-                        return ''
+                        # return ''
+                        # Python3
+                        return b''
                     pass
             available = len(d)
             required = available
@@ -213,6 +224,7 @@ class DWIO:
         self._print("%s: Starting _readHandler..." % self)
         while not self.abort:
             try:
+                # d = self._read()
                 d = self._read()
             except Exception as e:
                 print((str(e)))
@@ -224,7 +236,9 @@ class DWIO:
         self._print("%s: Exiting _readHandler..." % self)
 
     def _read(self, rlen=None):
-        data = ''
+        # data = ''
+        # Python3
+        data = b''
         ri = []
         try:
             (ri, _, _) = select.select([inf.fileno()], [], [], 1)
@@ -237,8 +251,11 @@ class DWIO:
     def _writeHandler(self):
         self._print("%s: Starting _writeHandler..." % self)
         while not self.abort:
-            d = ''
+            # d = ''
+            # Python3
+            d = b''
             try:
+                # d = self.wq.get(True, 1)
                 d = self.wq.get(True, 1)
             except Exception as e:
                 pass

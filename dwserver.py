@@ -373,7 +373,8 @@ class DWServer:
         clientID = self.conn.read(1, self.timeout)
         if self.debug:
             print("cmd=%0x cmdDWInit" % ord(cmd))
-        self.conn.write(chr(0xff))
+        # self.conn.write(chr(0xff))
+        self.conn.write(b'\xff') #Python3
 
     def cmdTime(self, cmd):
         t = ''
