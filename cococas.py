@@ -290,6 +290,9 @@ states = {
 
 
 class CocoWavFile:
+    # TODO This **may** be simplified by Python's Wave module
+    # TODO There may be a lot of problems with floats in Python 3, due to the
+    # // vs / division
     def open(self, fn, mode='rb', framerate=44100, sampwidth=1, nchannels=1):
         self.w = wave.open(fn, mode)
         if mode.startswith('r'):
@@ -320,7 +323,8 @@ class CocoWavFile:
         self.nReadFrames = self.framerate / 1200
         self.nbits = self.sampwidth * 8
         self.zeroval = 2**(self.nbits - 1) if self.sampwidth == 1 else 0
-        self.zero = chr(self.zeroval) if self.sampwidth == 1 else "\x00\x00"
+        # self.zero = chr(self.zeroval) if self.sampwidth == 1 else "\x00\x00"
+        self.zero = bytes(self.zeroval) if self.sampwidth == 1 else "\x00\x00"
         self.state = STATE_START
         self.prevState = None
         self.prev = self.zero
@@ -383,7 +387,8 @@ class CocoWavFile:
             byte |= (2**i) * bit
             # byte = byte << 1
         # print byte
-        return chr(byte)
+        # return chr(byte) # Python 3
+        return bytes(byte)
 
     def stateChange(self, s, ch):
         # print "State Change: %s -> %s: %d" % (states[self.state], states[s], self.atoi(ch))
@@ -471,7 +476,8 @@ class CocoWavFile:
     def passLeader(self, w):
         b = 'U'
         while b == 'U':
-            b = self, getByte(w)
+            # b = self, getByte(w) # Tony- was this a typo?
+            b = self.getByte(w)
             print(b)
         return b
 
@@ -504,7 +510,8 @@ class CocoWavFile:
 
     def writeBlank(self, s):
         nframes = int(round(self.framerate * s))
-        zeroData = nframes * chr(self.zeroval)
+        # zeroData = nframes * chr(self.zeroval)
+        zeroData = nframes * bytes(self.zeroval) # Python 3
         self.w.writeframes(zeroData)
 
     def close(self):

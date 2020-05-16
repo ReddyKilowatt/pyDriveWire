@@ -13,7 +13,8 @@ def canonicalize(instr):
             # Python3 ord() is no longer needed
             #     n = ord(c)
             hs += "%02x" % n
-            cs += chr(n) if 32 < n < 127 else '.'
+            # cs += chr(n) if 32 < n < 127 else '.'
+            cs += bytes(n) if 32 < n < 127 else '.' # Python 3
         outt.append((pos, hs, cs))
         pos = npos
 
@@ -66,7 +67,8 @@ def hexscii(s):
     p = 0
     while p < sl:
         e = p + 2
-        d += chr(int(s[p:e], 16))
+        # d += chr(int(s[p:e], 16))
+        d += bytes(int(s[p:e], 16)) # Python 3
         p = e
     return d
 
