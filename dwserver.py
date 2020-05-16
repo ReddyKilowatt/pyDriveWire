@@ -1,8 +1,5 @@
-import time
-from struct import *
-from ctypes import *
-import traceback
 import os
+import traceback
 
 from dwconstants import *
 from dwchannel import *
@@ -132,7 +129,8 @@ class DWServer:
                     flags += 'E'
             except BaseException:
                 rc = E_READ
-        self.conn.write(chr(rc))
+        # self.conn.write(chr(rc))
+        self.conn.write(bytes(rc)) #Python 3
         self.conn.write(dwCrc16(data))
         self.conn.write(data)
         if self.debug:
@@ -214,7 +212,8 @@ class DWServer:
                     unpack(
                         ">H", dataCrc)[0]))
                 rc = E_CRC
-        self.conn.write(chr(rc))
+        # self.conn.write(chr(rc)) #Python 3
+        self.conn.write(bytes(rc))
         if self.debug or rc != E_OK:
             print("cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
                 ord(cmd), disk, lsn, rc, flags))
@@ -286,7 +285,8 @@ class DWServer:
                 self.files[disk].guessMaxLsn()
         # if crc != dwCrc16(data):
         # 	rc=E_CRC
-        self.conn.write(chr(rc))
+        # self.conn.write(chr(rc)) # Python 3
+        self.conn.write(bytes(rc))
         if self.debug or rc != E_OK:
             print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
                 ord(cmd), disk, lsn, rc, flags))
@@ -305,7 +305,8 @@ class DWServer:
             ow = self.channels[channel].outWaiting()
             if ow < 0:
                 # Channel is closing
-                data = chr(16)
+                # data = chr(16) #Python 3
+                data = b'\16'
                 data += channel
                 msg = "channel=%d Closing" % nchannel
                 if self.channels[channel].state == DWV_S_CLOSED:
@@ -315,13 +316,16 @@ class DWServer:
             elif ow == 0:
                 continue
             elif ow < 3:
-                data = chr(1 + nchannel)
+                # data = chr(1 + nchannel) # Python 3
+                data = bytes(1 + nchannel)
                 data += self.channels[channel].read(1)
                 msg = "channel=%d ByteWaiting=(%s)" % (nchannel, data[1])
                 break
             else:
-                data = chr(17 + nchannel)
-                data += chr(ow)
+                # data = chr(17 + nchannel) # Python 3
+                data = bytes(17 + nchannel)
+                # data += chr(ow) # Python 3
+                data += bytes(ow)
                 msg = "channel=%d BytesWaiting=%d" % (nchannel, ow)
                 break
         # elif ow<0:
@@ -377,6 +381,7 @@ class DWServer:
         self.conn.write(b'\xff') #Python3
 
     def cmdTime(self, cmd):
+        # TODO Do these chr() and ord() need to be changed for Python3 ?
         t = ''
         now = time.localtime()
         t += chr(now.tm_year - 1900)
@@ -475,7 +480,8 @@ class DWServer:
             print(("cmd=%0x cmdSerTerm channel=%d" % (ord(cmd), ord(channel))))
 
     def cmdFastWrite(self, cmd):
-        channel = chr(ord(cmd) - 0x80)
+        # channel = chr(ord(cmd) - 0x80) # Python 3
+        channel = bytes(cmd - 0x80)
         if channel not in self.channels:
             print((
                 "cmd=%0x cmdFastWrite bad channel=%d" %
@@ -623,7 +629,8 @@ class DWServer:
         if error:
             checksum = error
         if opn:
-            response = chr(error)
+            # response = chr(error)
+            response = bytes(error) #Python 3
         else:
             response = pack(">HHH", address, size, checksum)
         self.conn.write(response)
@@ -656,7 +663,8 @@ class DWServer:
             nfblk = CocoCasBlock(nf.getBlockData(), blktyp=0)  # namefile
             self.files[filnum].nf = nf
             self.files[filnum].writeBlock(nfblk)
-        self.conn.write(chr(error))
+        # self.conn.write(chr(error))
+        self.conn.write(bytes(error)) # Python 3
         return error
 
     def cmdEmCeeLoadFile(self, cmd):
@@ -668,8 +676,10 @@ class DWServer:
                 (ord(cmd))))
             error = E_MC_IO  # IO ERROR
         if not error:
-            ftyp = ord(info[0])
-            fnamelen = ord(info[1])
+            # ftyp = ord(info[0]) #Python3
+            ftyp = info[0]
+            # fnamelen = ord(info[1])
+            fnamelen = info[1] #Python 3
             fname = self.conn.read(fnamelen, self.timeout)
             if not fname:
                 print((
@@ -855,15 +865,20 @@ class DWServer:
                 length = 0
             else:
                 length = len(self.emCeeDir[self.emCeeDirIdx])
-        self.conn.write(chr(error) + chr(length))
+        # self.conn.write(chr(error) + chr(length)) #Python 3
+        self.conn.write(bytes(error) + bytes(length))
 
     def cmdEmCeeDirFile(self, cmd):
         error = 0
         flag = 0
         dirNam = os.getcwd()
         try:
-            flag = ord(self.conn.read(1, self.timeout))
-            length = ord(self.conn.read(1, self.timeout))
+            # flag = ord(self.conn.read(1, self.timeout))
+            # length = ord(self.conn.read(1, self.timeout))
+            # Python 3
+            flag = self.conn.read(1, self.timeout)
+            length = self.conn.read(1, self.timeout)
+
         except BaseException:
             error = E_MC_IO
         if self.debug:
@@ -938,7 +953,8 @@ class DWServer:
                 os.chdir(dirNam)
             except BaseException:
                 error = E_MC_NE
-        self.conn.write(chr(error))
+        # self.conn.write(chr(error)) #Python 3
+        self.conn.write(bytes(error))
         if self.debug:
             print(("cmd=%0x cmdEmCeeSetDir" % ord(cmd)))
 
