@@ -130,7 +130,7 @@ class DWServer:
             except BaseException:
                 rc = E_READ
         # self.conn.write(chr(rc))
-        self.conn.write(bytes(rc)) #Python 3
+        self.conn.write(bytes([rc])) #Python 3
         self.conn.write(dwCrc16(data))
         self.conn.write(data)
         if self.debug:
@@ -213,7 +213,7 @@ class DWServer:
                         ">H", dataCrc)[0]))
                 rc = E_CRC
         # self.conn.write(chr(rc)) #Python 3
-        self.conn.write(bytes(rc))
+        self.conn.write(bytes([rc]))
         if self.debug or rc != E_OK:
             print("cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
                 ord(cmd), disk, lsn, rc, flags))
@@ -286,7 +286,7 @@ class DWServer:
         # if crc != dwCrc16(data):
         # 	rc=E_CRC
         # self.conn.write(chr(rc)) # Python 3
-        self.conn.write(bytes(rc))
+        self.conn.write(bytes([rc]))
         if self.debug or rc != E_OK:
             print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
                 ord(cmd), disk, lsn, rc, flags))
@@ -317,15 +317,15 @@ class DWServer:
                 continue
             elif ow < 3:
                 # data = chr(1 + nchannel) # Python 3
-                data = bytes(1 + nchannel)
+                data = bytes([1 + nchannel])
                 data += self.channels[channel].read(1)
                 msg = "channel=%d ByteWaiting=(%s)" % (nchannel, data[1])
                 break
             else:
                 # data = chr(17 + nchannel) # Python 3
-                data = bytes(17 + nchannel)
+                data = bytes([17 + nchannel])
                 # data += chr(ow) # Python 3
-                data += bytes(ow)
+                data += bytes([ow])
                 msg = "channel=%d BytesWaiting=%d" % (nchannel, ow)
                 break
         # elif ow<0:
@@ -481,7 +481,7 @@ class DWServer:
 
     def cmdFastWrite(self, cmd):
         # channel = chr(ord(cmd) - 0x80) # Python 3
-        channel = bytes(cmd - 0x80)
+        channel = bytes([cmd - 0x80])
         if channel not in self.channels:
             print((
                 "cmd=%0x cmdFastWrite bad channel=%d" %
@@ -630,7 +630,7 @@ class DWServer:
             checksum = error
         if opn:
             # response = chr(error)
-            response = bytes(error) #Python 3
+            response = bytes([error]) #Python 3
         else:
             response = pack(">HHH", address, size, checksum)
         self.conn.write(response)
@@ -664,7 +664,7 @@ class DWServer:
             self.files[filnum].nf = nf
             self.files[filnum].writeBlock(nfblk)
         # self.conn.write(chr(error))
-        self.conn.write(bytes(error)) # Python 3
+        self.conn.write(bytes([error])) # Python 3
         return error
 
     def cmdEmCeeLoadFile(self, cmd):
@@ -866,7 +866,7 @@ class DWServer:
             else:
                 length = len(self.emCeeDir[self.emCeeDirIdx])
         # self.conn.write(chr(error) + chr(length)) #Python 3
-        self.conn.write(bytes(error) + bytes(length))
+        self.conn.write(bytes([error]) + bytes([length]))
 
     def cmdEmCeeDirFile(self, cmd):
         error = 0
@@ -954,7 +954,7 @@ class DWServer:
             except BaseException:
                 error = E_MC_NE
         # self.conn.write(chr(error)) #Python 3
-        self.conn.write(bytes(error))
+        self.conn.write(bytes([error]))
         if self.debug:
             print(("cmd=%0x cmdEmCeeSetDir" % ord(cmd)))
 

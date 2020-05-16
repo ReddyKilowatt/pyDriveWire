@@ -869,8 +869,8 @@ class DWRepl:
                 break
 
             # basic stuff
-            # if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]: # Python3
-            if wdata.find(bytes(4)) == 0 or wdata.lower() in ["exit", "quit"]:
+            if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]: # Python3
+            # if wdata.find(bytes(4)) == 0 or wdata.lower() in ["exit", "quit"]:
                 # XXX Do some cleanup... how?
                 print("Bye!")
                 break
