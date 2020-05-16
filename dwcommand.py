@@ -1,10 +1,8 @@
-import threading
 import traceback
-import subprocess
+
 from dwsocket import *
 from dwtelnet import DWTelnet
 import os
-import sys
 import re
 import urllib.parse
 import tempfile
@@ -148,43 +146,43 @@ class DWParser:
 
         atParser = ATParseNode("AT")
         atParser.add(
-            "",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                "",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "Z",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                "Z",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add("D", ParseAction(self.doDial))
         atParser.add(
-            "I",
-            ParseAction(
-                lambda x: {
-                    'msg': 'pyDriveWire %s\r\nOK' % self.server.version,
-                    'self.cmdClass': 'AT'}))
+                "I",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'pyDriveWire %s\r\nOK' % self.server.version,
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "O",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                "O",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "H",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                "H",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "E",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT',
-                    'self.echo': True}))
+                "E",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT',
+                            'self.echo'    : True}))
 
         uiSFileParser = ParseNode("file")
         uiSFileParser.add("defaultdir", ParseAction(self.doUSFdefaultdir))
@@ -335,7 +333,8 @@ class DWParser:
 
     def doPortClose(self, data):
         data = data.lstrip().rstrip()
-        channel = chr(int(data))
+        # channel = chr(int(data))
+        channel = bytes(int(data))  # Python3
         if channel not in self.server.channels:
             return "Invalid port %s" % channel
         ch = self.server.channels[channel]
@@ -363,8 +362,10 @@ class DWParser:
     def doPortDebug(self, data):
         dv = data.split(' ')
         cn = dv[0]
-        channel = chr(int(cn))
-        if not chr(int(channel)) in self.server.channels:
+        # channel = chr(int(cn))
+        channel = bytes(int(cn)) # Python 3
+        # if not chr(int(channel)) in self.server.channels:
+        if not bytes(int(channel)) in self.server.channels: # Python 3
             return "Invalid port %s" % cn
         state = None
         if len(dv) > 1:
@@ -486,14 +487,14 @@ class DWParser:
                 sock = DWSocket(host=host, port=port, debug=self.server.debug)
             if telnet or interactive:
                 res = {
-                    'msg': '\r\nCONNECTED',
-                    'obj': sock,
+                    'msg'          : '\r\nCONNECTED',
+                    'obj'          : sock,
                     'self.cmdClass': 'AT',
-                    'self.online': True}
+                    'self.online'  : True}
             else:
                 res = {
-                    'msg': None,
-                    'obj': sock,
+                    'msg'          : None,
+                    'obj'          : sock,
                     'self.cmdClass': 'TCP'}
             sock.connect()
         except Exception as ex:
@@ -542,8 +543,8 @@ class DWParser:
                         (id2name.get(threadId, ""), threadId))
             for filename, lineno, name, line in traceback.extract_stack(stack):
                 code.append(
-                    'File: "%s", line %d, in %s' %
-                    (filename, lineno, name))
+                        'File: "%s", line %d, in %s' %
+                        (filename, lineno, name))
                 if line:
                     code.append("  %s" % (line.strip()))
         return "\r\n".join(code)
@@ -595,16 +596,16 @@ class DWParser:
             s = os.stat(data)
             mt = time.localtime(s.st_mtime)
             e = struct.pack(
-                ">IBBBBBBBB",
-                s.st_size & 0xffffffff,
-                mt[0],  # tm_year
-                mt[1],  # tm_mon
-                mt[2],  # tm_mday
-                mt[3],  # tm_hour
-                mt[4],  # tm_min
-                os.path.isdir(path),
-                os.access(path, W_OK),
-                len(data)
+                    ">IBBBBBBBB",
+                    s.st_size & 0xffffffff,
+                    mt[0],  # tm_year
+                    mt[1],  # tm_mon
+                    mt[2],  # tm_mday
+                    mt[3],  # tm_hour
+                    mt[4],  # tm_min
+                    os.path.isdir(path),
+                    os.access(path, W_OK),
+                    len(data)
             )
             e += data
             r += [e]
@@ -660,7 +661,7 @@ class DWParser:
     def doPrintFlush(self, data):
         if self.server.vprinter:
             self.server.vprinter.printFlush()
-            return("Print buffer flushed")
+            return ("Print buffer flushed")
 
     def doPrintFormat(self, data):
         if self.server.vprinter:
@@ -792,6 +793,7 @@ class DWParser:
                     nl.append(joiner.join(nodes + [name]))
                 # print nl
             return nl
+
         return '\r\n'.join(walkPt(self.parseTree))
 
     def parse(self, data, interact=False):
@@ -867,11 +869,11 @@ class DWRepl:
                 break
 
             # basic stuff
-            if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
+            # if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]: # Python3
+            if wdata.find(bytes(4)) == 0 or wdata.lower() in ["exit", "quit"]:
                 # XXX Do some cleanup... how?
                 print("Bye!")
                 break
-
             try:
                 wdata = re.subn('.\b', '', wdata)[0]
                 wdata = re.subn('.\x7f', '', wdata)[0]
