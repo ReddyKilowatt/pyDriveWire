@@ -56,7 +56,7 @@ if True:
    cs.send(OP_DWINIT)
    cs.send('A'.encode('UTF-8'))
    data = cs.recv(1)
-   print(f'data after data = cs.recv(1): {type(data)}')
+   # print(f'data after data = cs.recv(1): {type(data)}')
    print("r")
    print(f"Data after cs.recv(1): '{data}'")
    # assert(ord(data) == 0xff)
