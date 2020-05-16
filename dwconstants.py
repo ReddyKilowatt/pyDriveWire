@@ -54,7 +54,7 @@ E_WRITE = 245
 E_NOTRDY = 246
 E_SEEK = 247
 
-NULL = b'\x0'
+NULL = b'\x00'
 
 SECSIZ = 256
 INFOSIZ = 4
