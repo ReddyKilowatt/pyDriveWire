@@ -151,46 +151,40 @@ class DWParser:
             b"",
             ParseAction(
                 lambda x: {
-                    #Python3
-                    b'msg': b'OK',
-                    b'self.cmdClass': b'AT'}))
+                    'msg': 'OK',
+                    'self.cmdClass': 'AT'}))
         atParser.add(
-            b"Z",
+            "Z",
             ParseAction(
                 lambda x: {
-                    # Python 3
-                    b'msg': b'OK',
-                    b'self.cmdClass': b'AT'}))
-        #Python 3
+                    'msg': 'OK',
+                    'self.cmdClass': 'AT'}))
         atParser.add("D", ParseAction(self.doDial))
         atParser.add(
             b"I",
             ParseAction(
                 lambda x: {
-                    #Python 3
-                    b'msg': b'pyDriveWire %s\r\nOK' % self.server.version,
-                    b'self.cmdClass': b'AT'}))
+                    'msg': 'pyDriveWire %s\r\nOK' % self.server.version,
+                    'self.cmdClass': 'AT'}))
         atParser.add(
-            b"O",
+            "O",
             ParseAction(
                 lambda x: {
-                    b'msg': b'OK',
-                    b'self.cmdClass': b'AT'}))
+                    'msg': 'OK',
+                    'self.cmdClass': 'AT'}))
         atParser.add(
-                #Python 3
-            b"H",
+            "H",
             ParseAction(
                 lambda x: {
-                    b'msg': b'OK',
-                    b'self.cmdClass': b'AT'}))
+                    'msg': 'OK',
+                    'self.cmdClass': 'AT'}))
         atParser.add(
-            # Python 3
-            b"E",
+            "E",
             ParseAction(
                 lambda x: {
-                    b'msg': b'OK',
-                    b'self.cmdClass': b'AT',
-                    b'self.echo': True}))
+                    'msg': 'OK',
+                    'self.cmdClass': 'AT',
+                    'self.echo': True}))
 
         uiSFileParser = ParseNode("file")
         uiSFileParser.add("defaultdir", ParseAction(self.doUSFdefaultdir))
