@@ -153,7 +153,11 @@ class DWServer:
             # rc = E_READ
             # rc = E_CRC # force a re-read
         if rc == E_OK:
-            (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
+            # (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
+            # Python 3
+            disk = info[0]
+            lsn = unpack("I", NULL + info[1:])[0]
+            pass
         data = NULL_SECTOR
         if self.files[disk] is None:
             rc = E_NOTRDY
@@ -198,7 +202,7 @@ class DWServer:
         dataCrc = dwCrc16(data)
         self.conn.write(data)
 
-        crc = self.conn.read(CRCSIZ, 1)
+        crc = self.conn.read(CRCSIZ, 1) # Broken for Python3
         if not crc:
             print("cmd=%0x cmdReadEx timeout getting crc" % (ord(cmd)))
             # return
@@ -214,7 +218,8 @@ class DWServer:
                     unpack(
                         ">H", dataCrc)[0]))
                 rc = E_CRC
-        self.conn.write(chr(rc))
+        # self.conn.write(chr(rc))
+        self.conn.write(int.to_bytes(rc, 1,'big')) # Python 3
         if self.debug or rc != E_OK:
             print("cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
                 ord(cmd), disk, lsn, rc, flags))

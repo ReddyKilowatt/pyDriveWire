@@ -11,6 +11,9 @@ from struct import *
 
 import time
 PYTHON3_PORT = 65503
+def pause(msg=''):
+
+   input('\nPRESS ENTER\n')
 def worker(cs):
    try:
       while True:
@@ -70,17 +73,24 @@ if True:
       lsn = 0
       while rc == E_OK:
          fd = f.read(256)
-         fc = dwCrc16(fd)
+         fc = dwCrc16(fd) # data coming back on first loop matches Python 2  b'\xff\x00'
+         # print('fc:{}, len(fc):{}'.format(int(fc, 16), len(fc)))
          # send command
          cs.send(OP_READEX)
          # send disk
          cs.send(pack(">I",disk)[-1:])
          # send lsn
          cs.send(pack(">I",lsn)[-3:])
+         # first iteration, the data in the cs.send() is good to here
+
          # Read the data
-         data = cs.recv(256)
-         print(f'len of data received: {len(data)}')
+         # print('\ncs.recv(256)')
+         #pause()
+         data = cs.recv(256) # this is broken in Python 3
+         #print(f'data:{data}\nlen of data received: {len(data)}')
+         #pause()
          sc = dwCrc16(data)
+         #print(f'sc={sc}, len of sc:{len(sc)}')
          # Write the CRC
          cs.send(sc)
          # Get the RC
@@ -88,12 +98,14 @@ if True:
          rc = cs.recv(1) # Python 3
          print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", fc)[0]), hex(unpack(">H", sc)[0]))))
          assert(fc == sc)
-         print(("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc)))
+         # print(("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc)))
+         print((f'OP_READEX lsn {lsn} len {len(data)} {rc}'))
          #msg = "%d ..." % lsn
          #msg+'\b'*len(msg),
          #print ".",
          lsn += 1
       
-      print(("\nCompared %d sectors rc %d" % (lsn, rc)))
+      # print(("\nCompared %d sectors rc %d" % (lsn, rc)))
+      print((f'\nCompared {lsn} sectors rc {rc}'))
       assert(rc in [E_OK, E_EOF])
       f.close()
