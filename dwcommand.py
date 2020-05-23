@@ -148,43 +148,49 @@ class DWParser:
 
         atParser = ATParseNode("AT")
         atParser.add(
-            "",
+            b"",
             ParseAction(
                 lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    #Python3
+                    b'msg': b'OK',
+                    b'self.cmdClass': b'AT'}))
         atParser.add(
-            "Z",
+            b"Z",
             ParseAction(
                 lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    # Python 3
+                    b'msg': b'OK',
+                    b'self.cmdClass': b'AT'}))
+        #Python 3
         atParser.add("D", ParseAction(self.doDial))
         atParser.add(
-            "I",
+            b"I",
             ParseAction(
                 lambda x: {
-                    'msg': 'pyDriveWire %s\r\nOK' % self.server.version,
-                    'self.cmdClass': 'AT'}))
+                    #Python 3
+                    b'msg': b'pyDriveWire %s\r\nOK' % self.server.version,
+                    b'self.cmdClass': b'AT'}))
         atParser.add(
-            "O",
+            b"O",
             ParseAction(
                 lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    b'msg': b'OK',
+                    b'self.cmdClass': b'AT'}))
         atParser.add(
-            "H",
+                #Python 3
+            b"H",
             ParseAction(
                 lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                    b'msg': b'OK',
+                    b'self.cmdClass': b'AT'}))
         atParser.add(
-            "E",
+            # Python 3
+            b"E",
             ParseAction(
                 lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT',
-                    'self.echo': True}))
+                    b'msg': b'OK',
+                    b'self.cmdClass': b'AT',
+                    b'self.echo': True}))
 
         uiSFileParser = ParseNode("file")
         uiSFileParser.add("defaultdir", ParseAction(self.doUSFdefaultdir))
@@ -585,7 +591,7 @@ class DWParser:
         return "\n".join(r)
 
     def doUSFxdir(self, data):
-        import stuct
+        import struct
         r = []
         if os.path.isdir(data):
             dd = [os.path.join(data, d) for d in listdir(data)]

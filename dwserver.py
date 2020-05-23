@@ -301,7 +301,8 @@ class DWServer:
         msg = "NoData"
         # msg = ""
         for channel in self.channels:
-            nchannel = ord(channel)
+            # nchannel = ord(channel)
+            nchannel = channel  #Python 3
             ow = self.channels[channel].outWaiting()
             if ow < 0:
                 # Channel is closing
@@ -373,6 +374,7 @@ class DWServer:
         clientID = self.conn.read(1, self.timeout)
         if self.debug:
             print("cmd=%0x cmdDWInit" % ord(cmd))
+            # print(f"cmd={cmd} cmdDWInit") # Python 3
         # self.conn.write(chr(0xff))
         self.conn.write(b'\xff') #Python3
 
@@ -510,7 +512,8 @@ class DWServer:
                 "cmd=%0x cmdSerReadM channel=%d timeout getting count" %
                 (ord(cmd), ord(channel))))
             return
-        data = self.channels[channel].read(ord(num))
+        # data = self.channels[channel].read(ord(num))
+        data = self.channels[channel].read(num) # Python 3
         self.conn.write(data)
         if self.debug:
             print((
@@ -533,7 +536,8 @@ class DWServer:
                 "cmd=%0x cmdSerWriteM channel=%d timeout getting count" %
                 (ord(cmd), ord(channel))))
             return
-        data = self.conn.read(ord(num), self.timeout)
+        # data = self.conn.read(ord(num), self.timeout)
+        data = self.conn.read(num, self.timeout) # Python 3
         self.channels[channel].write(data)
         if self.debug:
             print((
@@ -668,8 +672,10 @@ class DWServer:
                 (ord(cmd))))
             error = E_MC_IO  # IO ERROR
         if not error:
-            ftyp = ord(info[0])
-            fnamelen = ord(info[1])
+            # ftyp = ord(info[0])
+            ftyp = info[0] # Python 3
+            # fnamelen = ord(info[1])
+            fnamelen = info[1]
             fname = self.conn.read(fnamelen, self.timeout)
             if not fname:
                 print((

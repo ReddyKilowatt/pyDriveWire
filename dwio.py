@@ -94,10 +94,12 @@ class DWIO:
         # print "outWaiting",n
         return n
 
-    def readline(self, ifs='\n'):
+    #def readline(self, ifs='\n'):
+    def readline(self, ifs=b'\n'):
         return self.read(readLine=True, ifs=ifs)
 
-    def read(self, rlen=None, timeout=None, readLine=False, ifs='\n'):
+    # def read(self, rlen=None, timeout=None, readLine=False, ifs='\n'):
+    def read(self, rlen=None, timeout=None, readLine=False, ifs=b'\n'): # Python 3
         rdata = ''
         # Python 3
         rdata = b''
@@ -128,7 +130,7 @@ class DWIO:
                 self.rbuf = b''
             else:
                 try:
-
+                    # PYTHON3 - BROKE HERE, QUEUE IS EMPTY, EXCEPTION THROWN
                     d = self.rq.get(True, _t)
                 except Exception as e:
                     if timeout:
@@ -236,6 +238,7 @@ class DWIO:
         self._print("%s: Exiting _readHandler..." % self)
 
     def _read(self, rlen=None):
+        # Not used- overloaded by derived class
         # data = ''
         # Python3
         data = b''
