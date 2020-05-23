@@ -79,7 +79,7 @@ if True:
          cs.send(pack(">I",lsn)[-3:])
          # Read the data
          data = cs.recv(256)
-         print(f'data received: {len(data)}')
+         print(f'len of data received: {len(data)}')
          sc = dwCrc16(data)
          # Write the CRC
          cs.send(sc)
