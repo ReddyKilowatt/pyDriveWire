@@ -25,20 +25,21 @@ while True:
         break
 
     # basic stuff
-    if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
+    # if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
+    if wdata.find(bytes(4)) == 0 or wdata.lower() in ["exit", "quit"]:
         # XXX Do some cleanup... how?
-        print "Bye!"
+        print("Bye!")
         break
 
     try:
         wdata = re.subn('.\b', '', wdata)[0]
         wdata = re.subn('.\x7f', '', wdata)[0]
         conn = urllib.urlopen(url, wdata)
-        print conn.read()
+        print(conn.read())
         if cmd:
             break
     except Exception as ex:
-        print "ERROR:: %s" % str(ex)
+        print("ERROR:: %s" % str(ex))
         traceback.print_exc()
 
 
