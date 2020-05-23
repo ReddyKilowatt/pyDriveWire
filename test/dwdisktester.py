@@ -54,11 +54,9 @@ if True:
 
    print("s")
    cs.send(OP_DWINIT)
-   cs.send('A'.encode('UTF-8'))
+   cs.send(b'A')
    data = cs.recv(1)
-   print(f'data after data = cs.recv(1): {type(data)}')
    print("r")
-   print(f"Data after cs.recv(1): '{data}'")
    # assert(ord(data) == 0xff)
    # assert (data == 0xff) # python3
    assert (data == b'\xff')  # python3
@@ -67,7 +65,7 @@ if True:
    for fileName in sys.argv[1:]:
       print(("Checking: %s" % fileName))
       # f = open(fileName)
-      f = open(fileName, 'rb') # Python3s
+      f = open(fileName, 'rb') # Python3
       rc = E_OK
       lsn = 0
       while rc == E_OK:
@@ -81,11 +79,13 @@ if True:
          cs.send(pack(">I",lsn)[-3:])
          # Read the data
          data = cs.recv(256)
+         print(f'data received: {len(data)}')
          sc = dwCrc16(data)
          # Write the CRC
          cs.send(sc)
          # Get the RC
-         rc = ord(cs.recv(1))
+         # rc = ord(cs.recv(1))
+         rc = cs.recv(1) # Python 3
          print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", fc)[0]), hex(unpack(">H", sc)[0]))))
          assert(fc == sc)
          print(("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc)))
