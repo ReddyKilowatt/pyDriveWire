@@ -7,12 +7,12 @@ OP_RESET1 = chr(0xFF)
 OP_INIT = b'\x49'
 OP_TERM = b'\x54'
 # OP_DWINIT = chr(0x5A)
-OP_DWINIT = b'\x5A' # b’\xF8’  # from Mike's message in Discord
+OP_DWINIT = b'\x5A'   # from Mike's message in Discord
 OP_TIME = chr(0x23)
-OP_NOP = chr(0x00)
+OP_NOP = b'\x00'
 OP_READ = b'\x52'
-OP_REREAD = chr(0x72)
-OP_WRITE = chr(0x57)
+OP_REREAD = b'\x72'
+OP_WRITE = b'\x57'
 OP_READEX = b'\xD2'
 OP_REREADEX = b'\xF2'
 OP_REWRITE = chr(0x77)
@@ -59,7 +59,7 @@ E_SEEK = 247
 
 # NULL = chr(0)
 # Python 3
-NULL = b'\x00' # ??
+NULL = b'\x00'
 
 SECSIZ = 256
 INFOSIZ = 4
