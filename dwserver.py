@@ -11,6 +11,10 @@ from dwutil import *
 
 from cococas import *
 
+#Python 3 debug tools
+import hunter
+hunter.trace(function='main', stdlib=False)
+
 NULL_SECTOR = NULL * SECSIZ
 
 
@@ -132,7 +136,8 @@ class DWServer:
                     flags += 'E'
             except BaseException:
                 rc = E_READ
-        self.conn.write(chr(rc))
+        # self.conn.write(chr(rc))
+        self.conn.write(rc) # Python3
         self.conn.write(dwCrc16(data))
         self.conn.write(data)
         if self.debug:
@@ -156,7 +161,8 @@ class DWServer:
             # (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
             # Python 3
             disk = info[0]
-            lsn = unpack("I", NULL + info[1:])[0]
+            lsn = unpack(">I", NULL + info[1:])[0]
+            print(f'lsn: {lsn}')
             pass
         data = NULL_SECTOR
         if self.files[disk] is None:
@@ -218,11 +224,17 @@ class DWServer:
                     unpack(
                         ">H", dataCrc)[0]))
                 rc = E_CRC
-        # self.conn.write(chr(rc))
-        self.conn.write(int.to_bytes(rc, 1,'big')) # Python 3
+        # self.conn.write(chr(rc)) # Python 3
+        print(f'rc={rc}')
+        self.conn.write(rc)
+        #self.conn.write(int.to_bytes(rc, 1,'big')) # Python 3
         if self.debug or rc != E_OK:
-            print("cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
-                ord(cmd), disk, lsn, rc, flags))
+            print(f'rc={rc}') #Python 3 debug
+            # print("cmd=%0x cmdReadEx disk=%d lsn=%d rc=%d f=%s" % (
+            #     ord(cmd), disk, lsn, rc, flags))
+
+        print(f'cmd={cmd} cmdReadEx disk={disk} lsn={lsn} rc={rc} f={flags}')
+
         # print "   rc=%d" % rc
 
     def cmdReReadEx(self, cmd):
@@ -291,7 +303,8 @@ class DWServer:
                 self.files[disk].guessMaxLsn()
         # if crc != dwCrc16(data):
         # 	rc=E_CRC
-        self.conn.write(chr(rc))
+        # self.conn.write(chr(rc))
+        self.conn.write(rc) # Python 3
         if self.debug or rc != E_OK:
             print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
                 ord(cmd), disk, lsn, rc, flags))
@@ -1039,6 +1052,7 @@ class DWServer:
             if cmd:
                 try:
                     f = DWServer.dwcommand[cmd]
+                    pass
                 except KeyError:
                     f = lambda s, x: DWServer.cmdErr(s, x)
                 f(self, cmd)

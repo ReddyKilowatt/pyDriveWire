@@ -227,7 +227,8 @@ class DWIO:
         while not self.abort:
             try:
                 # d = self._read()
-                d = self._read()
+                # debugging for Python 3 May 31, 2020
+                d = self._read() #d = self._read(1)
             except Exception as e:
                 print((str(e)))
                 break
