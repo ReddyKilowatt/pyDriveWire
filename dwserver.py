@@ -161,8 +161,8 @@ class DWServer:
             # (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
             # Python 3
             disk = info[0]
-            lsn = unpack(">I", NULL + info[1:])[0]
-            print(f'lsn: {lsn}')
+            lsn = unpack(">I", NULL + info[1:])[0] # Python 3
+            # print(f'lsn: {lsn}') # for debugging Python 2 to 3 issues
             pass
         data = NULL_SECTOR
         if self.files[disk] is None:
