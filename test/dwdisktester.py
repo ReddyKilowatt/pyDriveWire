@@ -1,45 +1,19 @@
 #!python
 import socket
-# import threading
 import sys
-
-# sys.path.append("..")
 
 # Mac dev path
 # sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
 
 # Windows Dev path
 sys.path.append(r'c:\Users\z48176zz\Documents\sources\GIT\Python\Coco\pyDriveWire3.7')
+
 from dwconstants import *
 from dwutil import *
 from struct import *
-# from ctypes import *
-
-import time
 
 PYTHON3_PORT = 65503
-
-
-def pause(msg=''):
-    input('\nPRESS ENTER\n')
-
-
-def worker(cs):
-    try:
-        while True:
-            data = cs.recv(192)
-            dl = len(data)
-            print(dl)
-            if dl > 0:
-                written = 0
-                while written < dl:
-                    written += cs.send(data[written:])
-            else:
-                print("Connection dropped.")
-                break
-    finally:
-        print("Listening again...")
-
+COCO_DISK_SECTOR_SIZE = 256
 
 if len(sys.argv) < 2:
     print('ERROR: You must pass the name of a disk image as an argument')
@@ -48,7 +22,6 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 listen = False
 if listen:
-    # print("Listening on port 65504...")
     print(f'Listening on PYTHON3 PORT: {PYTHON3_PORT} ...')
     # s.bind(('0.0.0.0', 65504))
     s.bind(('0.0.0.0', PYTHON3_PORT))
@@ -71,21 +44,19 @@ if True:
     cs.send(b'A')
     data = cs.recv(1)
     print("r")
-    # assert(ord(data) == 0xff)
-    # assert (data == 0xff) # python3
     assert (data == b'\xff')  # python3
+
     disk = 0
     # input('About to check disk\n"s')
     for fileName in sys.argv[1:]:
-        print(("Checking: %s" % fileName))
-        # f = open(fileName)
+        print(("Checking Disk: %s" % fileName))
         f = open(fileName, 'rb')  # Python3
         rc = E_OK
         lsn = 0
         while rc == E_OK:
-            disk_data = f.read(256)
+            disk_data = f.read(COCO_DISK_SECTOR_SIZE)
             disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
-            print(f'fc:{disk_checksum}, len(fc):{len(disk_checksum)}')
+            print(f'disk_checksum:{disk_checksum}')
 
             # Send opcode of next cmd to DW server
             # DW SPEC: Readex is a 5-byte transaction
@@ -95,7 +66,7 @@ if True:
             # send lsn
             cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
 
-            server_data = cs.recv(256)
+            server_data = cs.recv(COCO_DISK_SECTOR_SIZE)
             print(f'data:{server_data}\nlen of data received: {len(server_data)}')
             server_checksum = dwCrc16(server_data)
             # Write the CRC
@@ -103,7 +74,6 @@ if True:
             # Get the RC
             rc = cs.recv(1)  # Python 3
             print(f'rc=cs.recv(1){rc}')
-            # print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", disk_checksum)[0]), hex(unpack(">H", server_checksum)[0]))))
             print(f'lsn={lsn} fc={hex(unpack(">H", disk_checksum)[0])} sc={hex(unpack(">H", server_checksum)[0])}')
             assert (disk_checksum == server_checksum)
             print((f'OP_READEX lsn {lsn} len {len(server_data)} {rc}'))
