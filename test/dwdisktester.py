@@ -67,17 +67,15 @@ if True:
             cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
 
             server_data = cs.recv(COCO_DISK_SECTOR_SIZE)
-            print(f'data:{server_data}\nlen of data received: {len(server_data)}')
+            # print(f'data:{server_data}\nlen of data received: {len(server_data)}')
             server_checksum = dwCrc16(server_data)
             # Write the CRC
             cs.send(server_checksum)
             # Get the RC
             rc = cs.recv(1)  # Python 3
-            print(f'rc=cs.recv(1){rc}')
-            print(f'lsn={lsn} fc={hex(unpack(">H", disk_checksum)[0])} sc={hex(unpack(">H", server_checksum)[0])}')
+            print(f'rc={rc}, lsn={lsn} disk_crc={hex(unpack(">H", disk_checksum)[0])} server_crc={hex(unpack(">H", server_checksum)[0])}\n')
             assert (disk_checksum == server_checksum)
-            print((f'OP_READEX lsn {lsn} len {len(server_data)} {rc}'))
             lsn += 1
 
-        print((f'\nCompared {lsn} sectors rc {rc}'))
+        print((f'\nCompared {lsn} sectors rc={rc}'))
         f.close()
