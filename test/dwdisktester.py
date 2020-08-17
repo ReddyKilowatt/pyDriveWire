@@ -86,36 +86,28 @@ if True:
             disk_data = f.read(256)
             disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
             print(f'fc:{disk_checksum}, len(fc):{len(disk_checksum)}')
-            # send command
-            cs.send(OP_READEX)
 
-            # send disk number
-            cs.send(pack(">I", disk)[-1:])
-
+            # Send opcode of next cmd to DW server
+            # DW SPEC: Readex is a 5-byte transaction
+            cs.send(OP_READEX)  # Readex Byte 0
+            # send disk number  # DW SPEC: must be 0-255
+            cs.send(pack(">I", disk)[-1:])  # Readex Byte 1
             # send lsn
-            cs.send(pack(">I", lsn)[-3:])
+            cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
 
-            data = cs.recv(256)
-            print(f'data:{data}\nlen of data received: {len(data)}')
-            # pause()
-            sc = dwCrc16(data)
-            # print(f'sc={sc}, len of sc:{len(sc)}')
+            server_data = cs.recv(256)
+            print(f'data:{server_data}\nlen of data received: {len(server_data)}')
+            server_checksum = dwCrc16(server_data)
             # Write the CRC
-            cs.send(sc)
+            cs.send(server_checksum)
             # Get the RC
-            # rc = ord(cs.recv(1))
             rc = cs.recv(1)  # Python 3
             print(f'rc=cs.recv(1){rc}')
-            print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", disk_checksum)[0]), hex(unpack(">H", sc)[0]))))
-            assert (disk_checksum == sc)
-            # print(("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc)))
-            print((f'OP_READEX lsn {lsn} len {len(data)} {rc}'))
-            # msg = "%d ..." % lsn
-            # msg+'\b'*len(msg),
-            # print ".",
+            # print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", disk_checksum)[0]), hex(unpack(">H", server_checksum)[0]))))
+            print(f'lsn={lsn} fc={hex(unpack(">H", disk_checksum)[0])} sc={hex(unpack(">H", server_checksum)[0])}')
+            assert (disk_checksum == server_checksum)
+            print((f'OP_READEX lsn {lsn} len {len(server_data)} {rc}'))
             lsn += 1
 
-        # print(("\nCompared %d sectors rc %d" % (lsn, rc)))
         print((f'\nCompared {lsn} sectors rc {rc}'))
-        # assert (rc in [E_OK, E_EOF])
         f.close()
