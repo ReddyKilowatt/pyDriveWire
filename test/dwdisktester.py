@@ -47,7 +47,6 @@ if True:
     assert (data == b'\xff')  # python3
 
     disk = 0
-    # input('About to check disk\n"s')
     for fileName in sys.argv[1:]:
         print(("Checking Disk: %s" % fileName))
         f = open(fileName, 'rb')  # Python3
