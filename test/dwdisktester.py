@@ -4,7 +4,12 @@ import socket
 import sys
 
 # sys.path.append("..")
-sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
+
+# Mac dev path
+# sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
+
+# Windows Dev path
+sys.path.append(r'c:\Users\z48176zz\Documents\sources\GIT\Python\Coco\pyDriveWire3.7')
 from dwconstants import *
 from dwutil import *
 from struct import *
