@@ -83,9 +83,9 @@ if True:
         rc = E_OK
         lsn = 0
         while rc == E_OK:
-            fd = f.read(256)
-            fc = dwCrc16(fd)  # data coming back on first loop matches Python 2  b'\xff\x00'
-            print(f'fc:{fc}, len(fc):{len(fc)}')
+            disk_data = f.read(256)
+            disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
+            print(f'fc:{disk_checksum}, len(fc):{len(disk_checksum)}')
             # send command
             cs.send(OP_READEX)
 
@@ -106,8 +106,8 @@ if True:
             # rc = ord(cs.recv(1))
             rc = cs.recv(1)  # Python 3
             print(f'rc=cs.recv(1){rc}')
-            print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", fc)[0]), hex(unpack(">H", sc)[0]))))
-            assert (fc == sc)
+            print(("lsn=%d fc=%s sc=%s" % (lsn, hex(unpack(">H", disk_checksum)[0]), hex(unpack(">H", sc)[0]))))
+            assert (disk_checksum == sc)
             # print(("OP_READEX lsn %d len %d %d" % (lsn, len(data), rc)))
             print((f'OP_READEX lsn {lsn} len {len(data)} {rc}'))
             # msg = "%d ..." % lsn
