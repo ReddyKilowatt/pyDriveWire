@@ -11,9 +11,9 @@ from dwutil import *
 
 from cococas import *
 
-#Python 3 debug tools
-import hunter
-hunter.trace(function='main', stdlib=False)
+# #Python 3 debug tools
+# import hunter
+# hunter.trace(function='main', stdlib=False)
 
 NULL_SECTOR = NULL * SECSIZ
 
