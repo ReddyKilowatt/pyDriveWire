@@ -18,12 +18,12 @@ COCO_DISK_SECTOR_SIZE = 256
 
 
 def test_disktester(disk_image, cs):
-    print("s")
-    cs.send(OP_DWINIT)
-    cs.send(b'A')
-    data = cs.recv(1)
-    print("r")
-    assert (data == b'\xff')
+    # print("s")
+    # cs.send(OP_DWINIT)
+    # cs.send(b'A')
+    # data = cs.recv(1)
+    # print("r")
+    # assert (data == b'\xff')
 
     disk = 0
 
@@ -60,6 +60,15 @@ def test_disktester(disk_image, cs):
         # fh.close() # automatically handled using with construct
 
 
+def server_init(cs):
+    print("s")
+    cs.send(OP_DWINIT)
+    cs.send(b'A')
+    data = cs.recv(1)
+    print("r")
+    assert (data == b'\xff')
+
+
 def socket_init():
     # TODO Add exception handling
     # ConnectionRefusedError:
@@ -94,9 +103,11 @@ def main():
 
     cs = socket_init()
     if cs is not None:
+        server_init(cs)
         for ioWrapperObj in parsed_args.file_name:
             test_disktester(ioWrapperObj.name, cs)
     else:
         print('ERROR: Socket initialization was not successfull\n')
+
 
 main()
