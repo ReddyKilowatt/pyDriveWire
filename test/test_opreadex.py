@@ -1,4 +1,5 @@
 #!python
+import argparse
 import socket
 import sys
 
@@ -15,45 +16,23 @@ from struct import *
 PYTHON3_PORT = 65503
 COCO_DISK_SECTOR_SIZE = 256
 
-if len(sys.argv) < 2:
-    print('ERROR: You must pass the name of a disk image as an argument')
-    exit(1)
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-listen = False
-if listen:
-    print(f'Listening on PYTHON3 PORT: {PYTHON3_PORT} ...')
-    # s.bind(('0.0.0.0', 65504))
-    s.bind(('0.0.0.0', PYTHON3_PORT))
-    s.listen(0)
-if True:
-    if listen:
-        (cs, addr) = s.accept()
-        print("Accepted connection: %s" % str(addr))
-    else:
-        # addr = "172.16.1.89"
-        # addr = "192.168.4.1"
-        addr = '127.0.0.1'
-        # port = 65504
-        port = PYTHON3_PORT
-        cs = socket.create_connection((addr, port))
-        print("connection to : %s:%s" % (addr, port))
 
+def test_disktester(disk_image, cs):
     print("s")
     cs.send(OP_DWINIT)
     cs.send(b'A')
     data = cs.recv(1)
     print("r")
-    assert (data == b'\xff')  # python3
+    assert (data == b'\xff')
 
     disk = 0
-    for fileName in sys.argv[1:]:
-        print(("Checking Disk: %s" % fileName))
-        f = open(fileName, 'rb')  # Python3
+    # for fileName in sys.argv[1:]:
+    print(("Checking Disk: %s" % disk_image))
+    with open(disk_image, 'rb') as fh:
         rc = E_OK
         lsn = 0
         while rc == E_OK:
-            disk_data = f.read(COCO_DISK_SECTOR_SIZE)
+            disk_data = fh.read(COCO_DISK_SECTOR_SIZE)
             disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
             print(f'disk_checksum:{disk_checksum}')
 
@@ -77,4 +56,42 @@ if True:
             lsn += 1
 
         print((f'\nCompared {lsn} sectors rc={rc}'))
-        f.close()
+        # fh.close() # automatically handled using with construct
+
+
+def socket_init():
+    # TODO Add exception handling
+    cs = None
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    listen = False
+    if listen:
+        print(f'Listening on PYTHON3 PORT: {PYTHON3_PORT} ...')
+        # s.bind(('0.0.0.0', 65504))
+        s.bind(('0.0.0.0', PYTHON3_PORT))
+        s.listen(0)
+    if True:
+        if listen:
+            (cs, addr) = s.accept()
+            print("Accepted connection: %s" % str(addr))
+        else:
+            # addr = "172.16.1.89"
+            # addr = "192.168.4.1"
+            addr = '127.0.0.1'
+            # port = 65504
+            port = PYTHON3_PORT
+            cs = socket.create_connection((addr, port))
+            print("connection to : %s:%s" % (addr, port))
+    return cs
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file_name', type=argparse.FileType('r'), nargs='+')
+    parser.parse_args()
+
+    cs = socket_init()
+    if cs is not None:
+        test_disktester(parser.file_name, cs)
+    else:
+        print('ERROR: Socket initialization was not successfull\n')
