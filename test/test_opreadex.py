@@ -18,15 +18,7 @@ COCO_DISK_SECTOR_SIZE = 256
 
 
 def test_disktester(disk_image, cs):
-    # print("s")
-    # cs.send(OP_DWINIT)
-    # cs.send(b'A')
-    # data = cs.recv(1)
-    # print("r")
-    # assert (data == b'\xff')
-
     disk = 0
-
     print(("Checking Disk: %s" % disk_image))
     with open(disk_image, 'rb') as fh:
         rc = E_OK
