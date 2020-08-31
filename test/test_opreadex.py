@@ -18,8 +18,10 @@ COCO_DISK_SECTOR_SIZE = 256
 
 
 def test_disktester(disk_image, cs):
-    disk = 0
-    print(("Checking Disk: %s" % disk_image))
+
+    # TODO - let pytest use illegal drive numbers to check for errors
+    drive_number = 0
+
     with open(disk_image, 'rb') as fh:
         rc = E_OK
         lsn = 0
@@ -32,7 +34,7 @@ def test_disktester(disk_image, cs):
             # DW SPEC: Readex is a 5-byte transaction
             cs.send(OP_READEX)  # Readex Byte 0
             # send disk number  # DW SPEC: must be 0-255
-            cs.send(pack(">I", disk)[-1:])  # Readex Byte 1
+            cs.send(pack(">I", drive_number)[-1:])  # Readex Byte 1
             # send lsn
             cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
 
