@@ -9,6 +9,8 @@ import sys
 # Windows Dev path
 sys.path.append(r'c:\Users\z48176zz\Documents\sources\GIT\Python\Coco\pyDriveWire3.7')
 
+import dwsocket
+from dwsocket import DWSocket
 from dwconstants import *
 from dwutil import *
 from struct import *
@@ -34,6 +36,30 @@ print(s.read())
 s.close()
 """
 
+
+def server_command(cmd):
+    """
+    Uses the telnet server to send commands to the main pyDriveWire server
+    """
+    socket = dwsocket.DWSocket(port=6809)
+    socket.debug = True
+    socket.connect()
+    # socket.write('dw disk show\n')  # <- the NEWLINE IS absolutely necessary
+    socket.write('f{cmd}\n')  # <- the NEWLINE IS absolutely necessary
+    # print(socket.read())
+    socket.close()
+    return socket
+
+def create_disk(drive_number, disk_name):
+    socket = server_command(f'dw disk create {drive_number} {disk_name}')
+    show_disk(socket, drive_number)
+
+
+def show_disk(socket, drive_number):
+    server_command(f'dw disk show {drive_number}')
+    print(socket.read())
+
+
 def test_diskwrite(disk_name, cs):
     """
     0	OP_WRITE ($57)
@@ -54,12 +80,15 @@ def test_diskwrite(disk_name, cs):
     # write the contents of the server to a new disk file
     # manually diff the two files (for now) to see if they compare
 
+    create_disk(254,'junk.dsk')
+
     with open(disk_name, 'rb') as fh_in:
         rc = E_OK
         lsn = 0
         drive_number = 0
         while rc == E_OK:
             # rc, read_data, read_chksum = read_sector(cs, fh_in, lsn, drive_number)
+            print(f'LSN: {lsn}')
             read_data = fh_in.read(COCO_DISK_SECTOR_SIZE)
             write_sector(cs, lsn, drive_number, read_data)
             lsn += 1
