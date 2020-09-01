@@ -1,8 +1,7 @@
-import time
-from struct import *
-from ctypes import *
-import traceback
+
 import os
+from struct import *
+import traceback
 
 from dwconstants import *
 from dwchannel import *
@@ -163,7 +162,6 @@ class DWServer:
             disk = info[0]
             lsn = unpack(">I", NULL + info[1:])[0] # Python 3
             # print(f'lsn: {lsn}') # for debugging Python 2 to 3 issues
-            pass
         data = NULL_SECTOR
         if self.files[disk] is None:
             rc = E_NOTRDY
@@ -266,7 +264,10 @@ class DWServer:
                 # return
                 rc = E_CRC  # force a re-write
             else:
-                (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
+                # (disk, lsn) = unpack(">BI", info[0] + NULL + info[1:])
+                # Python 3
+                disk = info[0]
+                lsn = unpack(">I", NULL + info[1:])[0]
                 if crc != dwCrc16(data):
                     rc = E_CRC
         if rc == E_OK and self.files[disk] is None:
@@ -306,8 +307,11 @@ class DWServer:
         # self.conn.write(chr(rc))
         self.conn.write(rc) # Python 3
         if self.debug or rc != E_OK:
-            print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
-                ord(cmd), disk, lsn, rc, flags))
+            # print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
+            #     ord(cmd), disk, lsn, rc, flags))
+            # Python 3
+            print(f"cmd={cmd} cmdWrite disk={disk} lsn={lsn} rc={rc} f={flags}")
+
         # print "   rc=%d" % rc
 
     def cmdReWrite(self, cmd):
