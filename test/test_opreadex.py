@@ -66,9 +66,12 @@ def test_disktester_auto(disk_image, cs):
             print((f'Compared {lsn} sectors, rc={rc}'))
 
 
-def read_sector(cs, fh, lsn, drive_number):
-    disk_data = fh.read(COCO_DISK_SECTOR_SIZE)
+def read_sector(cs, fh_in, lsn, drive_number):
+
+    # TODO exception handling for I/O ERRORS
+    disk_data = fh_in.read(COCO_DISK_SECTOR_SIZE)
     disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
+    # TODO use the python logger instead of print()
     print(f'disk_checksum:{disk_checksum}')
 
     # Send opcode of next cmd to DW server
@@ -88,7 +91,7 @@ def read_sector(cs, fh, lsn, drive_number):
     rc = cs.recv(1)  # Python 3
     print(f'rc={rc}, lsn={lsn} disk_crc={hex(unpack(">H", disk_checksum)[0])} server_crc={hex(unpack(">H", server_checksum)[0])}\n')
     assert (disk_checksum == server_checksum)
-    return rc
+    return rc, disk_data, disk_checksum
 
 
 def server_init(cs):
