@@ -16,6 +16,23 @@ from struct import *
 PYTHON3_PORT = 65503
 COCO_DISK_SECTOR_SIZE = 256
 
+"""
+THIS CODE CAN BE USED TO SEND COMMANDS TO THE'SERVER WITHOUT NEEDING
+TO TYPE THE COMMANDS IN THE SERVER CONSOLE
+TO USE IT option cmdPort 6809 must be in the .pydrivewire_py3 file
+
+
+import sys
+sys.path.append('..')
+import dwsocket
+from dwsocket import DWSocket
+s = dwsocket.DWSocket(port=6809)
+s.debug = True
+s.connect()
+s.write('dw disk show\n')  # <- the NEWLINE IS absolutely necessary
+print(s.read())
+s.close()
+"""
 
 def test_diskwrite(disk_name, cs):
     """
@@ -79,6 +96,8 @@ def read_sector(cs, fh_in, lsn, drive_number):
 def write_sector(cs, lsn, drive_number, data):
     cs.send(OP_WRITE)
     # Drive Number - 1 Byte
+
+    # cs.send(pack(">I", drive_number)[-1:])
     cs.send(pack(">I", drive_number)[-1:])
     # LSN - 3 Bytes
     cs.send(pack(">I", lsn)[-3:])
