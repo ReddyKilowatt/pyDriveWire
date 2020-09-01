@@ -56,7 +56,7 @@ def test_disktester(disk_image, cs):
 def test_disktester_auto(disk_image, cs):
     # TODO - let pytest use illegal drive numbers to check for errors
     drive_number = 0
-
+    rc = E_OK
     with open(disk_image, 'rb') as fh:
         rc = E_OK
         lsn = 0
@@ -65,7 +65,7 @@ def test_disktester_auto(disk_image, cs):
             lsn += 1
             print((f'Compared {lsn} sectors, rc={rc}'))
 
-
+    return rc
 def read_sector(cs, fh_in, lsn, drive_number):
 
     # TODO exception handling for I/O ERRORS
@@ -91,8 +91,8 @@ def read_sector(cs, fh_in, lsn, drive_number):
     rc = cs.recv(1)  # Python 3
     print(f'rc={rc}, lsn={lsn} disk_crc={hex(unpack(">H", disk_checksum)[0])} server_crc={hex(unpack(">H", server_checksum)[0])}\n')
     assert (disk_checksum == server_checksum)
-    return rc, disk_data, disk_checksum
-
+    # return rc, disk_data, disk_checksum
+    return rc
 
 def server_init(cs):
     print("s")
