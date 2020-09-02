@@ -59,12 +59,12 @@ OP_SERTERM = b'\xC5'
 # Python 3
 E_OK = b'\x00'
 E_EOF = b'\xD3'
-E_WRPROT = 242
-E_CRC = 243
-E_READ = 244
-E_WRITE = 245
-E_NOTRDY = 246
-E_SEEK = 247
+E_WRPROT = b'\xF2'
+E_CRC = b'\xF3'
+E_READ = b'\xF4'
+E_WRITE = b'\xF5'
+E_NOTRDY = b'\xF6'
+E_SEEK = b'\xF7'
 
 # NULL = chr(0)
 # Python 3
