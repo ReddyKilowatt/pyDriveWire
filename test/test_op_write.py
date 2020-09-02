@@ -80,7 +80,7 @@ def test_diskwrite(disk_name, cs):
     # write the contents of the server to a new disk file
     # manually diff the two files (for now) to see if they compare
 
-    create_disk(254,'junk.dsk')
+    # create_disk(254,'junk.dsk')
 
     with open(disk_name, 'rb') as fh_in:
         rc = E_OK
@@ -88,12 +88,12 @@ def test_diskwrite(disk_name, cs):
         drive_number = 0
         while rc == E_OK:
             # rc, read_data, read_chksum = read_sector(cs, fh_in, lsn, drive_number)
-            print(f'LSN: {lsn}')
+            print(f'Write LSN: {lsn}')
             read_data = fh_in.read(COCO_DISK_SECTOR_SIZE)
-            write_sector(cs, lsn, drive_number, read_data)
+            rc = write_sector(cs, lsn, drive_number, read_data)
             lsn += 1
 
-        print(f"Finished writing {lsn} sectors")
+        print(f"Finished writing {lsn-1} sectors")
 
 
 def read_sector(cs, fh_in, lsn, drive_number):
@@ -138,7 +138,7 @@ def write_sector(cs, lsn, drive_number, data):
     # Get the RC
     rc = cs.recv(1)  # Python 3
     # print(f'rc={rc}, lsn={lsn} disk_crc={hex(unpack(">H", disk_checksum)[0])} server_crc={hex(unpack(">H", disk_checksum)[0])}\n')
-
+    return rc
 
 def server_init(cs):
     print("s")
