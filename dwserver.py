@@ -329,7 +329,7 @@ class DWServer:
             # print("cmd=%0x cmdWrite disk=%d lsn=%d rc=%d f=%s" % (
             #     ord(cmd), disk, lsn, rc, flags))
             # Python 3
-            print(f"cmd={cmd:x} cmdWrite disk={disk} lsn={lsn} rc={rc} f={flags}")
+            print(f"cmd={cmd} cmdWrite disk={disk} lsn={lsn} rc={rc} f={flags}")
 
         print(f"   rc={rc}")
 
