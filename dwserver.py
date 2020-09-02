@@ -243,7 +243,7 @@ class DWServer:
         rc = E_OK
         disk = -1
         lsn = -1
-        data = ''
+        data = b''
         info = self.conn.read(INFOSIZ, self.timeout)
         if not info:
             print("cmd=%0x cmdWrite timeout getting info" % (ord(cmd)))
@@ -253,14 +253,18 @@ class DWServer:
         if rc == E_OK:
             data = self.conn.read(SECSIZ, self.timeout)
         if not data:
-            print("cmd=%0x cmdWrite timeout getting data" % (ord(cmd)))
+            # Python 3
+            # print("cmd=%0x cmdWrite timeout getting data" % (ord(cmd)))
+            print(f"cmd={cmd} cmdWrite timeout getting data")
             # return
             # rc = E_WRITE
             rc = E_CRC  # force a re-write
         if rc == E_OK:
             crc = self.conn.read(CRCSIZ, self.timeout)
             if not crc:
-                print("cmd=%0x cmdWrite timeout getting crc" % (ord(cmd)))
+                # Python 3
+                # print("cmd=%0x cmdWrite timeout getting crc" % (ord(cmd)))
+                print(f"cmd={cmd} cmdWrite timeout getting crc")
                 # return
                 rc = E_CRC  # force a re-write
             else:
@@ -312,7 +316,7 @@ class DWServer:
             # Python 3
             print(f"cmd={cmd} cmdWrite disk={disk} lsn={lsn} rc={rc} f={flags}")
 
-        # print "   rc=%d" % rc
+        print(f"   rc={rc}")
 
     def cmdReWrite(self, cmd):
         self.cmdWrite(cmd, 'R')
