@@ -908,8 +908,10 @@ class DWRemoteRepl:
                 s = re.subn('.\b', '', s)[0]
                 s = re.subn('.\x7f', '', s)[0]
                 if s in ['quit', 'QUIT', 'exit', 'EXIT']:
-                    sock.conn.close()
-                    sock.conn = None
+                    # sock.conn.close()
+                    # sock.conn = None
+                    self.sock.conn.close()
+                    self.sock.conn = None
                     break
                 r = self.cmd.parse(s)
                 self.sock.write(r + '\n')
