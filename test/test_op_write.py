@@ -10,12 +10,11 @@ import sys
 sys.path.append(r'c:\Users\z48176zz\Documents\sources\GIT\Python\Coco\pyDriveWire3.7')
 
 import dwsocket
-from dwsocket import DWSocket
 from dwconstants import *
 from dwutil import *
 from struct import *
 
-PYTHON3_PORT = 65503  # This allows running a Python 2.7 server on 65502
+PYTHON3_PORT = 65503  # This allows running a Python 2.7 server on 65502, concurrently with a Python 3 server
 COCO_DISK_SECTOR_SIZE = 256
 
 """
@@ -49,6 +48,7 @@ def server_command(cmd):
     # print(socket.read())
     socket.close()
     return socket
+
 
 def create_disk(drive_number, disk_name):
     socket = server_command(f'dw disk create {drive_number} {disk_name}')
@@ -93,7 +93,7 @@ def test_diskwrite(disk_name, cs):
             rc = write_sector(cs, lsn, drive_number, read_data)
             lsn += 1
 
-        print(f"Finished writing {lsn-1} sectors")
+        print(f"Finished writing {lsn - 1} sectors")
 
 
 def read_sector(cs, fh_in, lsn, drive_number):
@@ -135,6 +135,7 @@ def write_sector(cs, lsn, drive_number, data):
     rc = cs.recv(1)  # Python 3
     print(f'rc={rc}')
     return rc
+
 
 def server_init(cs):
     print("s")
