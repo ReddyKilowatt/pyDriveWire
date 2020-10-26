@@ -260,19 +260,33 @@ class DWParser:
 
     def doDiskInfo(self, data):
         opts = data.split(' ')
-        if len(opts) < 1:
-            raise Exception("dw disk info <drive>")
-        drive = int(opts[0])
-        fi = self.server.files[drive]
-        out = [
-            'Drive: %d' % drive,
-            'Path: %s' % fi.file.name,
-            'Size: %d' % fi.img_size,
-            'Sectors: %d' % fi.img_sectors,
-            'MaxLsn: %d' % fi.maxLsn,
-            'Format: %s' % fi.fmt,
-            'flags: mode=%s, remote=%s stream=%s' % (fi.mode, fi.remote, fi.stream)
-        ]
+        out = []
+
+        if data == '' or len(opts) > 1 or data[0] < '1' and data[0] > '3':
+            # raise Exception("dw disk info <drive>")
+            # TODO Custom exceptions, maybe
+            # raise DWCmdError("disk info cmd requires a drive number, 0-3")
+            print('\nCMD Error: "dw disk info" cmd requires a drive number, 0-3\n')
+            return ''
+        try:
+            drive = int(opts[0])
+            # catch non-numeric typos
+        except ValueError:
+            print(f'\nERROR: Drive number: "{opts[0]}" is not a valid floppy drive number.')
+        else:
+            fi = self.server.files[drive]
+            if fi is None:
+                print(f'\nERROR: Drive: {drive} is not currently initialized in pyDriveWire.')
+            else:
+                out = [
+                    'Drive: %d' % drive,
+                    'Path: %s' % fi.file.name,
+                    'Size: %d' % fi.img_size,
+                    'Sectors: %d' % fi.img_sectors,
+                    'MaxLsn: %d' % fi.maxLsn,
+                    'Format: %s' % fi.fmt,
+                    'flags: mode=%s, remote=%s stream=%s' % (fi.mode, fi.remote, fi.stream)
+                ]
         return '\r\n'.join(out)
 
     def doReset(self, data):
