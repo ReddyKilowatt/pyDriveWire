@@ -191,14 +191,13 @@ class DWIO:
         if self.wt and self.wt._is_stopped:
             return 0
         self.wq.put(data)
-
-        data_len = len(data)
+        # data_len = len(data)
         # Python 3 DEBUG code
-#        data_len = 0
-        # try:
-        #     data_len = len(data)
-        # except TypeError:
-        #     pass
+        data_len = 0
+#        try:
+        data_len = len(data)
+#        except TypeError:
+#            pass
         return data_len
     def _close(self):
         pass
