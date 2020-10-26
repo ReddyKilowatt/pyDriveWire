@@ -15,7 +15,7 @@ from dwconstants import *
 from dwutil import *
 from struct import *
 
-PYTHON3_PORT = 65503
+PYTHON3_PORT = 65503  # This allows running a Python 2.7 server on 65502
 COCO_DISK_SECTOR_SIZE = 256
 
 """
@@ -124,20 +124,16 @@ def read_sector(cs, fh_in, lsn, drive_number):
 
 def write_sector(cs, lsn, drive_number, data):
     cs.send(OP_WRITE)
-    # Drive Number - 1 Byte
 
-    # cs.send(pack(">I", drive_number)[-1:])
+    # Drive Number - 1 Byte
     cs.send(pack(">I", drive_number)[-1:])
     # LSN - 3 Bytes
     cs.send(pack(">I", lsn)[-3:])
-    disk_checksum = dwCrc16(data)
     cs.send(data)
+    disk_checksum = dwCrc16(data)
     cs.send(disk_checksum)
-
-    # ???
-    # Get the RC
     rc = cs.recv(1)  # Python 3
-    # print(f'rc={rc}, lsn={lsn} disk_crc={hex(unpack(">H", disk_checksum)[0])} server_crc={hex(unpack(">H", disk_checksum)[0])}\n')
+    print(f'rc={rc}')
     return rc
 
 def server_init(cs):
