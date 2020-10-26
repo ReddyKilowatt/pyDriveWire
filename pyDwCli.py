@@ -4,7 +4,7 @@ import traceback
 import sys
 
 if len(sys.argv) < 2:
-    print "Usage: pyDwCli <url> [<cmd>]"
+    print("Usage: pyDwCli <url> [<cmd>]")
     sys.exit(1)
 
 url = sys.argv[1]
@@ -17,11 +17,10 @@ while True:
         if cmd:
             wdata = cmd
         else:
-            print "pyDriveWire>",
-            wdata = raw_input()
+            print("pyDriveWire>",wdata = input())
     except EOFError:
-        print
-        print "Bye!"
+        print('')
+        print("Bye!")
         break
 
     # basic stuff
