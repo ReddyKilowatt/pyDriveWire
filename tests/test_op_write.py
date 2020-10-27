@@ -1,5 +1,5 @@
 #!python
-import argparse
+# import argparse
 import socket
 import sys
 
@@ -35,6 +35,18 @@ print(s.read())
 s.close()
 """
 
+import pytest
+
+
+#
+#
+# def test_print_name(disk_name):
+#     print(f"\ncommand line param (disk_name): {disk_name}")
+#
+#
+# def test_print_name_2(pytestconfig):
+#     print(f"test_print_name_2(disk_name): {pytestconfig.getoption('disk_name')}")
+
 
 def server_command(cmd):
     """
@@ -60,7 +72,7 @@ def show_disk(socket, drive_number):
     print(socket.read())
 
 
-def test_diskwrite(disk_name, cs):
+def diskwrite(disk_name, cs):
     """
     0	OP_WRITE ($57)
     1	Drive number (0-255)
@@ -173,18 +185,20 @@ def socket_init():
     return cs
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file_name', type=argparse.FileType('r'), nargs='+')
-    parsed_args = parser.parse_args()
-
+def test_opwrite(disk_name):
     cs = socket_init()
     if cs is not None:
         server_init(cs)
-        for ioWrapperObj in parsed_args.file_name:
-            test_diskwrite(ioWrapperObj.name, cs)
+        diskwrite(disk_name, cs)
     else:
         print('ERROR: Socket initialization was not successfull\n')
 
 
-main()
+@pytest.fixture()
+def disk_name(pytestconfig):
+    """
+    This is needed to get the filename passed on the cmd line with the disk_name argument
+    and return it to the fixture, so that disk_name is passted to test_opwrite() as its
+    argument.
+    """
+    return pytestconfig.getoption("disk_name")
