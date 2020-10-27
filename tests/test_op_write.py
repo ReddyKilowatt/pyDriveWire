@@ -197,6 +197,9 @@ def test_opwrite(disk_name):
 @pytest.fixture()
 def disk_name(pytestconfig):
     """
+    When running this test, disk_name must be passed to pytest, NOT the test itself:
+    pytest --disk_name 3dbrick.dsk test_op_write.py
+
     This is needed to get the filename passed on the cmd line with the disk_name argument
     and return it to the fixture, so that disk_name is passted to test_opwrite() as its
     argument.
