@@ -14,8 +14,8 @@ from dwutil import *
 from struct import *
 
 from coco_constants import *
+
 PYTHON3_PORT = 65503
-# COCO_DISK_SECTOR_SIZE = 256
 
 
 def test_disktester(disk_image, cs):
@@ -67,8 +67,9 @@ def test_disktester_auto(disk_image, cs):
             print((f'Compared {lsn} sectors, rc={rc}'))
 
     return rc
-def read_sector(cs, fh_in, lsn, drive_number):
 
+
+def read_sector(cs, fh_in, lsn, drive_number):
     # TODO exception handling for I/O ERRORS
     disk_data = fh_in.read(COCO_SECTOR_SIZE)
     disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
@@ -94,6 +95,7 @@ def read_sector(cs, fh_in, lsn, drive_number):
     assert (disk_checksum == server_checksum)
     # return rc, disk_data, disk_checksum
     return rc
+
 
 def server_init(cs):
     print("s")
