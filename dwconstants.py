@@ -70,7 +70,7 @@ E_SEEK = b'\xF7'
 # Python 3
 NULL = b'\x00'
 
-SECSIZ = 256
+# SECSIZ = 256 # replaced with COCO_SECTOR_SIZE in coco_constants.py
 INFOSIZ = 4
 CRCSIZ = 2
 STATSIZ = 2
