@@ -1,19 +1,16 @@
 import os
-from struct import *
 import traceback
 
+from cococas import *
 from dwconstants import *
 from dwchannel import *
 from dwfile import DWFile
 from dwutil import *
 
-from cococas import *
+from coco_constants import *
 
-# #Python 3 debug tools
-# import hunter
-# hunter.trace(function='main', stdlib=False)
-
-NULL_SECTOR = NULL * SECSIZ
+# NULL_SECTOR = NULL * SECSIZ
+NULL_SECTOR = NULL * COCO_SECTOR_SIZE
 
 
 class DWServer:
@@ -123,12 +120,16 @@ class DWServer:
         if rc == E_OK:
             try:
                 if self.hdbdos:
-                    disk = lsn / 630
-                    lsn = lsn - (disk * 630)
+                    # disk = lsn / 630
+                    disk = lsn / COCO_SECTOR_SIZE
+                    # lsn = lsn - (disk * 630)
+                    lsn = lsn - (disk * COCO_SECTOR_SIZE)
                 else:
                     lsn += self.files[disk].offset
-                self.files[disk].file.seek(lsn * SECSIZ)
-                assert (self.files[disk].file.tell() == (lsn * SECSIZ))
+                # self.files[disk].file.seek(lsn * SECSIZ)
+                self.files[disk].file.seek(lsn * COCO_SECTOR_SIZE)
+                # assert (self.files[disk].file.tell() == (lsn * SECSIZ))
+                assert (self.files[disk].file.tell() == (lsn * COCO_SECTOR_SIZE))
             except BaseException:
                 raise
                 rc = E_SEEK
@@ -136,7 +137,8 @@ class DWServer:
                 print("   rc=%d" % rc)
         if rc == E_OK:
             try:
-                data = self.files[disk].file.read(SECSIZ)
+                # data = self.files[disk].file.read(SECSIZ)
+                data = self.files[disk].file.read(COCO_SECTOR_SIZE)
                 if len(data) == 0:
                     data = NULL_SECTOR
                     flags += 'E'
@@ -184,20 +186,25 @@ class DWServer:
         if rc == E_OK:
             try:
                 if self.hdbdos:
-                    disk = lsn / 630
-                    lsn = lsn - (disk * 630)
+                    # disk = lsn / 630
+                    disk = lsn / COCO_SECTOR_SIZE
+                    # lsn = lsn - (disk * 630)
+                    lsn = lsn - (disk * COCO_SECTOR_SIZE)
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
-                self.files[disk].file.seek(lsn * SECSIZ)
-                assert (self.files[disk].file.tell() == (lsn * SECSIZ))
+                # self.files[disk].file.seek(lsn * SECSIZ)
+                self.files[disk].file.seek(lsn * COCO_SECTOR_SIZE)
+                # assert (self.files[disk].file.tell() == (lsn * SECSIZ))
+                assert (self.files[disk].file.tell() == (lsn * COCO_SECTOR_SIZE))
             except BaseException:
                 rc = E_SEEK
                 # print "   rc=%d" % rc
                 traceback.print_exc()
         if rc == E_OK:
             try:
-                data = self.files[disk].file.read(SECSIZ)
+                # data = self.files[disk].file.read(SECSIZ)
+                data = self.files[disk].file.read(COCO_SECTOR_SIZE)
                 # if data:
                 # 	pass
                 # print "cmdReadEx read %d" % len(data)
@@ -266,7 +273,8 @@ class DWServer:
             # rc = E_WRITE
             # rc = E_CRC # force a re-write
         if rc == E_OK:
-            data = self.conn.read(SECSIZ, self.timeout)
+            # data = self.conn.read(SECSIZ, self.timeout)
+            data = self.conn.read(COCO_SECTOR_SIZE, self.timeout)
         if not data:
             # Python 3
             # print("cmd=%0x cmdWrite timeout getting data" % (ord(cmd)))
@@ -298,12 +306,15 @@ class DWServer:
         if rc == E_OK:
             try:
                 if self.hdbdos:
-                    disk = lsn / 630
-                    lsn = lsn - (disk * 630)
+                    # disk = lsn / 630
+                    disk = lsn / COCO_SECTOR_SIZE
+                    # lsn = lsn - (disk * 630)
+                    lsn = lsn - (disk * COCO_SECTOR_SIZE)
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
-                self.files[disk].file.seek(lsn * SECSIZ)
+                # self.files[disk].file.seek(lsn * SECSIZ)
+                self.files[disk].file.seek(lsn * COCO_SECTOR_SIZE)
             except BaseException:
                 traceback.print_exc()
                 rc = E_SEEK

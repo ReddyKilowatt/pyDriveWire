@@ -1,0 +1,12 @@
+[user]
+	name = Reddy Kilowatt
+	email = cappy2112@gmail.com
+[core]
+	autocrlf = true
+	excludesfile = ~/.gitignore_global
+	editor = \"C:/Program Files (x86)/GitExtensions/GitExtensions.exe\" fileeditor
+[alias]
+	com = commit
+	l = log --oneline
+	lg = log --oneline --graph --decorate
+	s = status

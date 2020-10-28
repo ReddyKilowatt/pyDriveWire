@@ -9,9 +9,7 @@ import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-COCO_SECTOR_SIZE = 256
-COCO_DEFAULT_DISK_SIZE = 630
-COCO_HDBDOS_NUMDISKS = 256
+from coco_constants import *
 
 formats = {
     630: {'sides': 1, 'tracks': 35, 'sectors': 18, 'bytes': COCO_SECTOR_SIZE, 'descr': 'CoCo Standard 160K: Single-Sided, 35 Track, 18-Sectors/Track, 256Byte/Sector Image'},
