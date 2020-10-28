@@ -97,15 +97,15 @@ def diskwrite(disk_name, cs):
     with open(disk_name, 'rb') as fh_in:
         rc = E_OK
         lsn = 0
-        drive_number = 0
-        while rc == E_OK:
-            # rc, read_data, read_chksum = read_sector(cs, fh_in, lsn, drive_number)
+        drive_number = 0  # TODO make a cmd line arg or pytest fixture control
+        while rc == E_OK:  # TODO && lsn < COCO_DISK_SECTOR_SIZE
             print(f'Write LSN: {lsn}')
             read_data = fh_in.read(COCO_DISK_SECTOR_SIZE)
             rc = write_sector(cs, lsn, drive_number, read_data)
             lsn += 1
 
         print(f"Finished writing {lsn - 1} sectors")
+    return rc, lsn
 
 
 def read_sector(cs, fh_in, lsn, drive_number):
@@ -144,8 +144,8 @@ def write_sector(cs, lsn, drive_number, data):
     cs.send(data)
     disk_checksum = dwCrc16(data)
     cs.send(disk_checksum)
-    rc = cs.recv(1)  # Python 3
-    print(f'rc={rc}')
+    rc = cs.recv(1)
+    print(f'rc={rc}')  # TODO control the printing of this with the Python Logger
     return rc
 
 
@@ -155,12 +155,10 @@ def server_init(cs):
     cs.send(b'A')
     data = cs.recv(1)
     print("r")
-    assert (data == b'\xff')
+    return data
 
 
 def socket_init():
-    # TODO Add exception handling
-    # ConnectionRefusedError:
     cs = None
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -179,19 +177,36 @@ def socket_init():
             # addr = "192.168.4.1"
             addr = '127.0.0.1'
             # port = 65504
+            # port = PYTHON3_PORT + 1 # bad port for testing
             port = PYTHON3_PORT
-            cs = socket.create_connection((addr, port))
-            print("connection to : %s:%s" % (addr, port))
+            try:
+                cs = socket.create_connection((addr, port))
+            except ConnectionRefusedError:
+                print(f'\n\nServer Connection Error: The server refused to connect on Addr: {addr}, Port: {port}. Please verify those '
+                      f'values.\n')
+            else:
+                print(f'connection to : {addr}:{port}')
     return cs
 
 
 def test_opwrite(disk_name):
+    """
+    This is the top-level test function called by pytest
+    All values tested by pytest are tested here, so that the user only needs to look in one place
+    to get an overview of what the test is doing.
+    """
+    rc = E_OK
+
     cs = socket_init()
-    if cs is not None:
-        server_init(cs)
-        diskwrite(disk_name, cs)
-    else:
-        print('ERROR: Socket initialization was not successfull\n')
+    assert cs is not None, 'ERROR: test_opwrite(): Socket initialization was not successfull\n'
+
+    init_data = server_init(cs)
+    assert init_data == b'\xff', f'test_opwrite(): DWINIT ERROR: Server initialization was not successful. Data from recv() was' \
+                                 f' {init_data}, exp: b"\xff" \n'
+
+    rc, lsn = diskwrite(disk_name, cs)
+    assert rc != E_OK, f'test_opwrite(): diskwrite() test returned {rc}'
+    assert lsn < COCO_DISK_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
 
 
 @pytest.fixture()
