@@ -13,9 +13,10 @@ import dwsocket
 from dwconstants import *
 from dwutil import *
 from struct import *
+from coco_constants import *
 
 PYTHON3_PORT = 65503  # This allows running a Python 2.7 server on 65502, concurrently with a Python 3 server
-COCO_DISK_SECTOR_SIZE = 256
+# COCO_DISK_SECTOR_SIZE = 256
 
 """
 THIS CODE CAN BE USED TO SEND COMMANDS TO THE'SERVER WITHOUT NEEDING
@@ -98,9 +99,9 @@ def diskwrite(disk_name, cs):
         rc = E_OK
         lsn = 0
         drive_number = 0  # TODO make a cmd line arg or pytest fixture control
-        while rc == E_OK:  # TODO && lsn < COCO_DISK_SECTOR_SIZE
+        while rc == E_OK:  # TODO && lsn < COCO_SECTOR_SIZE
             print(f'Write LSN: {lsn}')
-            read_data = fh_in.read(COCO_DISK_SECTOR_SIZE)
+            read_data = fh_in.read(COCO_SECTOR_SIZE)
             rc = write_sector(cs, lsn, drive_number, read_data)
             lsn += 1
 
@@ -109,7 +110,7 @@ def diskwrite(disk_name, cs):
 
 
 def read_sector(cs, fh_in, lsn, drive_number):
-    disk_data = fh_in.read(COCO_DISK_SECTOR_SIZE)
+    disk_data = fh_in.read(COCO_SECTOR_SIZE)
     disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
     # TODO use the python logger instead of print()
     print(f'disk_checksum:{disk_checksum}')
@@ -122,7 +123,7 @@ def read_sector(cs, fh_in, lsn, drive_number):
     # send lsn
     cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
 
-    server_data = cs.recv(COCO_DISK_SECTOR_SIZE)
+    server_data = cs.recv(COCO_SECTOR_SIZE)
     # print(f'data:{server_data}\nlen of data received: {len(server_data)}')
     server_checksum = dwCrc16(server_data)
     # Write the CRC
@@ -206,7 +207,7 @@ def test_opwrite(disk_name):
 
     rc, lsn = diskwrite(disk_name, cs)
     assert rc != E_OK, f'test_opwrite(): diskwrite() test returned {rc}'
-    assert lsn < COCO_DISK_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
+    # assert lsn < COCO_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
 
 
 @pytest.fixture()
