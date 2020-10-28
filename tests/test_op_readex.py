@@ -13,8 +13,9 @@ from dwconstants import *
 from dwutil import *
 from struct import *
 
+from coco_constants import *
 PYTHON3_PORT = 65503
-COCO_DISK_SECTOR_SIZE = 256
+# COCO_DISK_SECTOR_SIZE = 256
 
 
 def test_disktester(disk_image, cs):
@@ -25,7 +26,7 @@ def test_disktester(disk_image, cs):
         rc = E_OK
         lsn = 0
         while rc == E_OK:
-            disk_data = fh.read(COCO_DISK_SECTOR_SIZE)
+            disk_data = fh.read(COCO_SECTOR_SIZE)
             disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
             print(f'disk_checksum:{disk_checksum}')
 
@@ -37,7 +38,7 @@ def test_disktester(disk_image, cs):
             # send lsn
             cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
 
-            server_data = cs.recv(COCO_DISK_SECTOR_SIZE)
+            server_data = cs.recv(COCO_SECTOR_SIZE)
             # print(f'data:{server_data}\nlen of data received: {len(server_data)}')
             server_checksum = dwCrc16(server_data)
             # Write the CRC
@@ -69,7 +70,7 @@ def test_disktester_auto(disk_image, cs):
 def read_sector(cs, fh_in, lsn, drive_number):
 
     # TODO exception handling for I/O ERRORS
-    disk_data = fh_in.read(COCO_DISK_SECTOR_SIZE)
+    disk_data = fh_in.read(COCO_SECTOR_SIZE)
     disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
     # TODO use the python logger instead of print()
     print(f'disk_checksum:{disk_checksum}')
@@ -82,7 +83,7 @@ def read_sector(cs, fh_in, lsn, drive_number):
     # send lsn
     cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
 
-    server_data = cs.recv(COCO_DISK_SECTOR_SIZE)
+    server_data = cs.recv(COCO_SECTOR_SIZE)
     # print(f'data:{server_data}\nlen of data received: {len(server_data)}')
     server_checksum = dwCrc16(server_data)
     # Write the CRC
