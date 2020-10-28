@@ -1,7 +1,9 @@
 #!python
-import argparse
+
 import socket
 import sys
+
+import pytest
 
 # Mac dev path
 # sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
@@ -18,55 +20,18 @@ from coco_constants import *
 PYTHON3_PORT = 65503
 
 
-def test_disktester(disk_image, cs):
-    # TODO - let pytest use illegal drive numbers to check for errors
-    drive_number = 0
-
-    with open(disk_image, 'rb') as fh:
-        rc = E_OK
-        lsn = 0
-        while rc == E_OK:
-            disk_data = fh.read(COCO_SECTOR_SIZE)
-            disk_checksum = dwCrc16(disk_data)  # data coming back on first loop matches Python 2  b'\xff\x00'
-            print(f'disk_checksum:{disk_checksum}')
-
-            # Send opcode of next cmd to DW server
-            # DW SPEC: Readex is a 5-byte transaction
-            cs.send(OP_READEX)  # Readex Byte 0
-            # send disk number  # DW SPEC: must be 0-255
-            cs.send(pack(">I", drive_number)[-1:])  # Readex Byte 1
-            # send lsn
-            cs.send(pack(">I", lsn)[-3:])  # Readex Bytes 2,3,4
-
-            server_data = cs.recv(COCO_SECTOR_SIZE)
-            # print(f'data:{server_data}\nlen of data received: {len(server_data)}')
-            server_checksum = dwCrc16(server_data)
-            # Write the CRC
-            cs.send(server_checksum)
-            # Get the RC
-            rc = cs.recv(1)  # Python 3
-            print(f'rc={rc}, lsn={lsn} disk_crc={hex(unpack(">H", disk_checksum)[0])} server_crc={hex(unpack(">H", server_checksum)[0])}\n')
-            assert (disk_checksum == server_checksum)
-            lsn += 1
-            print((f'\nCompared {lsn} sectors rc={rc}'))
-
-        # print((f'\nCompared {lsn} sectors rc={rc}'))
-        # fh.close() # automatically handled using with construct
-
-
-def test_disktester_auto(disk_image, cs):
-    # TODO - let pytest use illegal drive numbers to check for errors
-    drive_number = 0
+def disk_read(disk_image, cs):
+    drive_number = 0  # TODO make a cmd line arg or pytest fixture control
     rc = E_OK
     with open(disk_image, 'rb') as fh:
         rc = E_OK
         lsn = 0
-        while rc == E_OK:
+        while rc == E_OK:  # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
             rc = read_sector(cs, fh, lsn, drive_number)
             lsn += 1
-            print((f'Compared {lsn} sectors, rc={rc}'))
-
-    return rc
+        # print((f'Compared {lsn} sectors, rc={rc}'))
+        print(f"Finished reading {lsn - 1} sectors")
+    return rc, lsn
 
 
 def read_sector(cs, fh_in, lsn, drive_number):
@@ -93,7 +58,6 @@ def read_sector(cs, fh_in, lsn, drive_number):
     rc = cs.recv(1)  # Python 3
     print(f'rc={rc}, lsn={lsn} disk_crc={hex(unpack(">H", disk_checksum)[0])} server_crc={hex(unpack(">H", server_checksum)[0])}\n')
     assert (disk_checksum == server_checksum)
-    # return rc, disk_data, disk_checksum
     return rc
 
 
@@ -103,12 +67,10 @@ def server_init(cs):
     cs.send(b'A')
     data = cs.recv(1)
     print("r")
-    assert (data == b'\xff')
+    return data
 
 
 def socket_init():
-    # TODO Add exception handling
-    # ConnectionRefusedError:
     cs = None
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -127,25 +89,40 @@ def socket_init():
             # addr = "192.168.4.1"
             addr = '127.0.0.1'
             # port = 65504
+            # port = PYTHON3_PORT + 1 # bad port for testing
             port = PYTHON3_PORT
-            cs = socket.create_connection((addr, port))
-            print("connection to : %s:%s" % (addr, port))
+            try:
+                cs = socket.create_connection((addr, port))
+            except ConnectionRefusedError:
+                print(f'\n\nServer Connection Error: The server refused to connect on Addr: {addr}, Port: {port}. Please verify those '
+                      f'values.\n')
+            else:
+                print(f'connection to : {addr}:{port}')
     return cs
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file_name', type=argparse.FileType('r'), nargs='+')
-    parsed_args = parser.parse_args()
-
+def test_opreadex(disk_name):
     cs = socket_init()
-    if cs is not None:
-        server_init(cs)
-        for ioWrapperObj in parsed_args.file_name:
-            # test_disktester(ioWrapperObj.name, cs)
-            test_disktester_auto(ioWrapperObj.name, cs)
-    else:
-        print('ERROR: Socket initialization was not successfull\n')
+    assert cs is not None, 'ERROR: test_opreadex(): Socket initialization was not successfull\n'
+    init_data = server_init(cs)
+    assert init_data == b'\xff', f'test_opreadex(): DWINIT ERROR: Server initialization was not successful. Data from recv() was' \
+                                 f' {init_data}, exp: b"\xff" \n'
+
+    rc, lsn = disk_read(disk_name, cs)
+    assert rc != E_OK, f'test_opreadex(): disk_read() test returned {rc}'
+
+    # TODO lsn number needs to be passed in on the cmd line , depending on the disk type
+    # assert lsn < COCO_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
 
 
-main()
+@pytest.fixture()
+def disk_name(pytestconfig):
+    """
+    When running this test, disk_name must be passed to pytest, NOT the test itself:
+    pytest --disk_name 3dbrick.dsk test_op_write.py
+
+    This is needed to get the filename passed on the cmd line with the disk_name argument
+    and return it to the fixture, so that disk_name is passted to test_opwrite() as its
+    argument.
+    """
+    return pytestconfig.getoption("disk_name")
