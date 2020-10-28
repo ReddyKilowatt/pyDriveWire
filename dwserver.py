@@ -1,17 +1,13 @@
 import os
-from struct import *
 import traceback
 
+from cococas import *
 from dwconstants import *
 from dwchannel import *
 from dwfile import DWFile
 from dwutil import *
 
-from cococas import *
-
-# #Python 3 debug tools
-# import hunter
-# hunter.trace(function='main', stdlib=False)
+from coco_constants import *
 
 NULL_SECTOR = NULL * SECSIZ
 
@@ -123,8 +119,10 @@ class DWServer:
         if rc == E_OK:
             try:
                 if self.hdbdos:
-                    disk = lsn / 630
-                    lsn = lsn - (disk * 630)
+                    # disk = lsn / 630
+                    disk = lsn / COCO_SECTOR_SIZE
+                    # lsn = lsn - (disk * 630)
+                    lsn = lsn - (disk * COCO_SECTOR_SIZE)
                 else:
                     lsn += self.files[disk].offset
                 self.files[disk].file.seek(lsn * SECSIZ)
@@ -184,8 +182,10 @@ class DWServer:
         if rc == E_OK:
             try:
                 if self.hdbdos:
-                    disk = lsn / 630
-                    lsn = lsn - (disk * 630)
+                    # disk = lsn / 630
+                    disk = lsn / COCO_SECTOR_SIZE
+                    # lsn = lsn - (disk * 630)
+                    lsn = lsn - (disk * COCO_SECTOR_SIZE)
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
@@ -298,8 +298,10 @@ class DWServer:
         if rc == E_OK:
             try:
                 if self.hdbdos:
-                    disk = lsn / 630
-                    lsn = lsn - (disk * 630)
+                    # disk = lsn / 630
+                    disk = lsn / COCO_SECTOR_SIZE
+                    # lsn = lsn - (disk * 630)
+                    lsn = lsn - (disk * COCO_SECTOR_SIZE)
                     flags += "H"
                 else:
                     lsn += self.files[disk].offset
