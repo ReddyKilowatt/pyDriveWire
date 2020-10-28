@@ -1,5 +1,4 @@
 #!python
-# import argparse
 import socket
 import sys
 
@@ -16,7 +15,6 @@ from struct import *
 from coco_constants import *
 
 PYTHON3_PORT = 65503  # This allows running a Python 2.7 server on 65502, concurrently with a Python 3 server
-# COCO_DISK_SECTOR_SIZE = 256
 
 """
 THIS CODE CAN BE USED TO SEND COMMANDS TO THE'SERVER WITHOUT NEEDING
@@ -99,7 +97,7 @@ def diskwrite(disk_name, cs):
         rc = E_OK
         lsn = 0
         drive_number = 0  # TODO make a cmd line arg or pytest fixture control
-        while rc == E_OK:  # TODO && lsn < COCO_SECTOR_SIZE
+        while rc == E_OK:  # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
             print(f'Write LSN: {lsn}')
             read_data = fh_in.read(COCO_SECTOR_SIZE)
             rc = write_sector(cs, lsn, drive_number, read_data)
@@ -207,6 +205,8 @@ def test_opwrite(disk_name):
 
     rc, lsn = diskwrite(disk_name, cs)
     assert rc != E_OK, f'test_opwrite(): diskwrite() test returned {rc}'
+
+    # TODO lsn number needs to be passed in on the cmd line , depending on the disk type
     # assert lsn < COCO_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
 
 
