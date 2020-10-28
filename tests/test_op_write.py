@@ -97,7 +97,7 @@ def diskwrite(disk_name, cs):
         rc = E_OK
         lsn = 0
         drive_number = 0  # TODO make a cmd line arg or pytest fixture control
-        while rc == E_OK:  # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
+        while rc == E_OK: # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
             print(f'Write LSN: {lsn}')
             read_data = fh_in.read(COCO_SECTOR_SIZE)
             rc = write_sector(cs, lsn, drive_number, read_data)
