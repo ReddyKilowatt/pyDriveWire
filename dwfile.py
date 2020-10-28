@@ -9,9 +9,6 @@ import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-# COCO_SECTOR_SIZE = 256
-# COCO_DEFAULT_DISK_SIZE = 630
-# COCO_HDBDOS_NUMDISKS = 256
 from coco_constants import *
 
 formats = {
