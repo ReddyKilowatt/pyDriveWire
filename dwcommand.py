@@ -1,13 +1,12 @@
-import threading
 import traceback
-import subprocess
 from dwsocket import *
 from dwtelnet import DWTelnet
 import os
-import sys
 import re
 import urllib.parse
 import tempfile
+
+from dw_exceptions import DWDriveNumberError
 
 
 class ParseNode:
@@ -148,43 +147,43 @@ class DWParser:
 
         atParser = ATParseNode("AT")
         atParser.add(
-            b"",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                b"",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "Z",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                "Z",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add("D", ParseAction(self.doDial))
         atParser.add(
-            b"I",
-            ParseAction(
-                lambda x: {
-                    'msg': 'pyDriveWire %s\r\nOK' % self.server.version,
-                    'self.cmdClass': 'AT'}))
+                b"I",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'pyDriveWire %s\r\nOK' % self.server.version,
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "O",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                "O",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "H",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT'}))
+                "H",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT'}))
         atParser.add(
-            "E",
-            ParseAction(
-                lambda x: {
-                    'msg': 'OK',
-                    'self.cmdClass': 'AT',
-                    'self.echo': True}))
+                "E",
+                ParseAction(
+                        lambda x: {
+                            'msg'          : 'OK',
+                            'self.cmdClass': 'AT',
+                            'self.echo'    : True}))
 
         uiSFileParser = ParseNode("file")
         uiSFileParser.add("defaultdir", ParseAction(self.doUSFdefaultdir))
@@ -258,7 +257,49 @@ class DWParser:
         self.server.open(int(drive), path, mode=mode, stream=stream, create=True)
         return "create(%d, %s)" % (int(drive), path)
 
+    def _check_valid_drive_number(self, data, cmd_context):
+        opts = data.split(' ')
+        drive_number = 0
+
+        if data == '' or len(opts) > 1 or data[0] < '1' and data[0] > '3':
+            # raise Exception("dw disk info <drive>")
+            # TODO Custom exceptions, maybe
+            # raise DWCmdError("disk info cmd requires a drive number, 0-3")
+            # print('\nCMD Error: "dw disk info" cmd requires a drive number, 0-3\n')
+            # print(f'\nCMD Error: "{cmd_context}" cmd requires a drive number, 0-3\n')
+            raise DWDriveNumberError(f'\nCMD Error: "{cmd_context}" cmd requires a drive number, 0-3\n')
+        try:
+            drive_number = int(opts[0])
+            # catch non-numeric typos
+        except ValueError:
+            # print(f'\nERROR: Drive number: "{opts[0]}" is not a valid floppy drive number.')
+            raise DWDriveNumberError(f'\nERROR: Drive number: "{opts[0]}" is not a valid floppy drive number.')
+        return drive_number
+
     def doDiskInfo(self, data):
+        out = []
+        drive = 0
+        try:
+            drive = self._check_valid_drive_number(data, 'dw disk info')
+        except DWDriveNumberError as exc:
+            print(f'{exc.reason}')
+        else:
+            fi = self.server.files[drive]
+            if fi is None:
+                print(f'\nERROR: Drive: {drive} is not currently initialized in pyDriveWire.')
+            else:
+                out = [
+                    'Drive: %d' % drive,
+                    'Path: %s' % fi.file.name,
+                    'Size: %d' % fi.img_size,
+                    'Sectors: %d' % fi.img_sectors,
+                    'MaxLsn: %d' % fi.maxLsn,
+                    'Format: %s' % fi.fmt,
+                    'flags: mode=%s, remote=%s stream=%s' % (fi.mode, fi.remote, fi.stream)
+                ]
+        return '\r\n'.join(out)
+
+    def doDiskInfo_orig(self, data):
         opts = data.split(' ')
         out = []
 
@@ -297,9 +338,14 @@ class DWParser:
         return "reset(%d, %s)" % (int(drive), path)
 
     def doEject(self, data):
-        drive = data.split(' ')[0]
-        self.server.close(int(drive))
-        return "close(%d)" % (int(drive))
+        drive = -1
+        try:
+            drive = self._check_valid_drive_number(data, 'dw disk eject')
+        except DWDriveNumberError as exc:
+            print(f'{exc.reason}')
+        else:
+            self.server.close(drive)
+        return f'close({drive})'
 
     def doHdbDos(self, data):
         data = data.lstrip().rstrip()
@@ -500,14 +546,14 @@ class DWParser:
                 sock = DWSocket(host=host, port=port, debug=self.server.debug)
             if telnet or interactive:
                 res = {
-                    'msg': '\r\nCONNECTED',
-                    'obj': sock,
+                    'msg'          : '\r\nCONNECTED',
+                    'obj'          : sock,
                     'self.cmdClass': 'AT',
-                    'self.online': True}
+                    'self.online'  : True}
             else:
                 res = {
-                    'msg': None,
-                    'obj': sock,
+                    'msg'          : None,
+                    'obj'          : sock,
                     'self.cmdClass': 'TCP'}
             sock.connect()
         except Exception as ex:
@@ -556,8 +602,8 @@ class DWParser:
                         (id2name.get(threadId, ""), threadId))
             for filename, lineno, name, line in traceback.extract_stack(stack):
                 code.append(
-                    'File: "%s", line %d, in %s' %
-                    (filename, lineno, name))
+                        'File: "%s", line %d, in %s' %
+                        (filename, lineno, name))
                 if line:
                     code.append("  %s" % (line.strip()))
         return "\r\n".join(code)
@@ -609,16 +655,16 @@ class DWParser:
             s = os.stat(data)
             mt = time.localtime(s.st_mtime)
             e = struct.pack(
-                ">IBBBBBBBB",
-                s.st_size & 0xffffffff,
-                mt[0],  # tm_year
-                mt[1],  # tm_mon
-                mt[2],  # tm_mday
-                mt[3],  # tm_hour
-                mt[4],  # tm_min
-                os.path.isdir(path),
-                os.access(path, W_OK),
-                len(data)
+                    ">IBBBBBBBB",
+                    s.st_size & 0xffffffff,
+                    mt[0],  # tm_year
+                    mt[1],  # tm_mon
+                    mt[2],  # tm_mday
+                    mt[3],  # tm_hour
+                    mt[4],  # tm_min
+                    os.path.isdir(path),
+                    os.access(path, W_OK),
+                    len(data)
             )
             e += data
             r += [e]
@@ -674,7 +720,7 @@ class DWParser:
     def doPrintFlush(self, data):
         if self.server.vprinter:
             self.server.vprinter.printFlush()
-            return("Print buffer flushed")
+            return ("Print buffer flushed")
 
     def doPrintFormat(self, data):
         if self.server.vprinter:
@@ -806,6 +852,7 @@ class DWParser:
                     nl.append(joiner.join(nodes + [name]))
                 # print nl
             return nl
+
         return '\r\n'.join(walkPt(self.parseTree))
 
     def parse(self, data, interact=False):
