@@ -71,7 +71,7 @@ def show_disk(socket, drive_number):
     print(socket.read())
 
 
-def diskwrite(disk_name, cs):
+def diskwrite(disk_name, drive_number, cs):
     """
     0	OP_WRITE ($57)
     1	Drive number (0-255)
@@ -96,7 +96,6 @@ def diskwrite(disk_name, cs):
     with open(disk_name, 'rb') as fh_in:
         rc = E_OK
         lsn = 0
-        drive_number = 0  # TODO make a cmd line arg or pytest fixture control
         while rc == E_OK: # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
             print(f'Write LSN: {lsn}')
             read_data = fh_in.read(COCO_SECTOR_SIZE)
@@ -203,7 +202,8 @@ def test_opwrite(disk_name):
     assert init_data == b'\xff', f'test_opwrite(): DWINIT ERROR: Server initialization was not successful. Data from recv() was' \
                                  f' {init_data}, exp: b"\xff" \n'
 
-    rc, lsn = diskwrite(disk_name, cs)
+    drive_number = 0
+    rc, lsn = diskwrite(disk_name, drive_number, cs)
     assert rc != E_OK, f'test_opwrite(): diskwrite() test returned {rc}'
 
     # TODO lsn number needs to be passed in on the cmd line , depending on the disk type

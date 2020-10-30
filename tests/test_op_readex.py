@@ -20,8 +20,7 @@ from coco_constants import *
 PYTHON3_PORT = 65503
 
 
-def disk_read(disk_image, cs):
-    drive_number = 0  # TODO make a cmd line arg or pytest fixture control
+def disk_read(disk_image, drive_number, cs):
     rc = E_OK
     with open(disk_image, 'rb') as fh:
         rc = E_OK
@@ -108,7 +107,8 @@ def test_opreadex(disk_name):
     assert init_data == b'\xff', f'test_opreadex(): DWINIT ERROR: Server initialization was not successful. Data from recv() was' \
                                  f' {init_data}, exp: b"\xff" \n'
 
-    rc, lsn = disk_read(disk_name, cs)
+    drive_number = 0
+    rc, lsn = disk_read(disk_name, drive_number, cs)
     assert rc != E_OK, f'test_opreadex(): disk_read() test returned {rc}'
 
     # TODO lsn number needs to be passed in on the cmd line , depending on the disk type
