@@ -1,7 +1,7 @@
 #!python
 import socket
 import sys
-
+import time
 # Mac dev path
 # sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
 
@@ -51,23 +51,29 @@ def server_command(cmd):
     """
     Uses the telnet server to send commands to the main pyDriveWire server
     """
-    socket = dwsocket.DWSocket(port=6809)
+    socket = dwsocket.DWSocket(port=REMOTE_REPL_PORT)
     socket.debug = True
     socket.connect()
     # socket.write('dw disk show\n')  # <- the NEWLINE IS absolutely necessary
-    socket.write('f{cmd}\n')  # <- the NEWLINE IS absolutely necessary
+    server_cmd = f'{cmd}\n' # <- the NEWLINE IS absolutely necessary
+    socket.write(server_cmd.encode('utf-8'))
     # print(socket.read())
     socket.close()
     return socket
 
 
 def create_disk(drive_number, disk_name):
+    print(f'Creating blank disk image {disk_name} on drive # {drive_number}')
+    time.sleep(1)
     socket = server_command(f'dw disk create {drive_number} {disk_name}')
+    print('After creating socket')
+    time.sleep(3)
     show_disk(socket, drive_number)
+    print('After show_disk()\n')
+    time.sleep(3)
 
-
-def show_disk(socket, drive_number):
-    server_command(f'dw disk show {drive_number}')
+def show_disk(socket):
+    server_command(f'dw disk show')
     print(socket.read())
 
 
@@ -133,8 +139,10 @@ def read_sector(cs, fh_in, lsn, drive_number):
 
 
 def write_sector(cs, lsn, drive_number, data):
-    cs.send(OP_WRITE)
 
+    rc = -1
+
+    cs.send(OP_WRITE)
     # Drive Number - 1 Byte
     cs.send(pack(">I", drive_number)[-1:])
     # LSN - 3 Bytes
@@ -186,6 +194,8 @@ def socket_init():
                 print(f'connection to : {addr}:{port}')
     return cs
 
+def verify_destination_disk():
+    pass
 
 def test_opwrite(disk_name):
     """
@@ -203,12 +213,15 @@ def test_opwrite(disk_name):
                                  f' {init_data}, exp: b"\xff" \n'
 
     drive_number = 0
+
+    create_disk(drive_number, disk_name='newdisk.dsk')
     rc, lsn = diskwrite(disk_name, drive_number, cs)
     assert rc != E_OK, f'test_opwrite(): diskwrite() test returned {rc}'
 
     # TODO lsn number needs to be passed in on the cmd line , depending on the disk type
     # assert lsn < COCO_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
 
+    verify_destination_disk()
 
 @pytest.fixture()
 def disk_name(pytestconfig):
