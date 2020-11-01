@@ -389,9 +389,13 @@ def CreateServer(args, instance, instances, lock):
     parser = DWParser(dws)
     cmds = []
     if args.debug >= 1:
-        cmds += ['dw server debug 1']
+        # cmds += ['dw server debug 1']
+        # Python 3
+        cmds += [b'dw server debug 1']
     if args.debug == 2:
-        cmds += ['dw server conn debug 1']
+        # cmds += ['dw server conn debug 1']
+        # python 3
+        cmds += [b'dw server conn debug 1']
     cmds += args.cmds
     for cmd in cmds:
         print((parser.parse(cmd)))
