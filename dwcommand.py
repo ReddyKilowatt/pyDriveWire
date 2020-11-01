@@ -34,7 +34,9 @@ class ParseNode:
         allNodes = list(self.nodes.keys())
         for i in range(len(key) + 1):
             s = key[:i]
-            nodes = [n for n in allNodes if n.startswith(s)]
+            #  TODO the nodes sshould be strings already, so that encoding
+            # doesn't need to be done on the fly
+            nodes = [n for n in allNodes if n.encode('utf-8').startswith(s)]
             # print i,"(%s"%s,nodes
             if len(nodes) == 1:
                 key = nodes[0]
@@ -857,18 +859,25 @@ class DWParser:
 
     def parse(self, data, interact=False):
         data = data.lstrip().strip()
-        data = re.subn('.\b', '', data)[0]
-        data = re.subn('.\x7f', '', data)[0]
+        # data = re.subn('.\b', '', data)[0]
+        # data = re.subn('.\x7f', '', data)[0]
+        # Python 3
+        data = re.subn(b'.\b', b'', data)[0]
+        data = re.subn(b'.\x7f', b'', data)[0]
         u = data.upper()
-        if u.startswith("AT"):
-            tokens = ["AT"]
+        # if u.startswith("AT"):
+        # Python 3
+        if u.startswith(b"AT"):
+            tokens = [b"AT"]
             t2 = u[2:]
             if t2:
                 tokens.append(t2)
             else:
                 return {'res': "OK", 'self.cmdClass': 'AT'}
         else:
-            tokens = data.split(' ')
+            # tokens = data.split(' ')
+            # Python 3
+            tokens = data.split(b' ')
         p = self.parseTree
         i = 0
         for t in tokens:
@@ -921,21 +930,27 @@ class DWRepl:
                     server = self.parser.server
                     iprompt = '(%d)' % server.instance
                 print("pyDriveWire%s> " % iprompt, end=' ')
-                wdata = input()
+                # wdata = input()
+                # Python 3
+                wdata = input().encode('utf-8')
             except EOFError:
                 print()
                 print("Bye!")
                 break
 
             # basic stuff
-            if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
+            # if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
+            if wdata.find(ord(b'\x04')) == 0 or wdata.lower() in [b"exit", b"quit"]:
                 # XXX Do some cleanup... how?
                 print("Bye!")
                 break
 
             try:
-                wdata = re.subn('.\b', '', wdata)[0]
-                wdata = re.subn('.\x7f', '', wdata)[0]
+                # wdata = re.subn('.\b', '', wdata)[0]
+                # wdata = re.subn('.\x7f', '', wdata)[0]
+                # python 3
+                wdata = re.subn(b'.\b', b'', wdata)[0]
+                wdata = re.subn(b'.\x7f', b'', wdata)[0]
                 r = self.parser.parse(wdata, True)
                 print(r)
             except Exception as ex:
@@ -966,9 +981,9 @@ class DWRemoteRepl:
             s = self.sock.read(readLine=True)
             if len(s) > 0:
                 s = s.lstrip().rstrip()
-                s = re.subn('.\b', '', s)[0]
-                s = re.subn('.\x7f', '', s)[0]
-                if s in ['quit', 'QUIT', 'exit', 'EXIT']:
+                s = re.subn(b'.\b', b'', s)[0]
+                s = re.subn(b'.\x7f', b'', s)[0]
+                if s in ['q','quit', 'QUIT', 'exit', 'EXIT']:
                     # sock.conn.close()
                     # sock.conn = None
                     self.sock.conn.close()
