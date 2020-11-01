@@ -176,6 +176,7 @@ def write_sector(cs, lsn, drive_number, data):
 
 
 def server_init(cs):
+    data = ''
     print('server_init()')
     print("s")
     cs.send(OP_DWINIT)
