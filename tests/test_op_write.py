@@ -72,12 +72,13 @@ def create_disk(drive_number, disk_name):
         time.sleep(3)
         show_disk(socket)
     except Exception:
-        raise # so the caller sees it, and we can catch the specific exception
+        raise  # so the caller sees it, and we can catch the specific exception
         rc = 1
     print('After show_disk()\n')
     time.sleep(3)
 
     return rc
+
 
 def eject_disk(drive_number, disk_name):
     print(f'Ejecting disk image {disk_name} on drive # {drive_number}\n')
@@ -125,9 +126,10 @@ def diskwrite(disk_name, drive_number, cs):
             print(f'Write LSN: {lsn}')
             read_data = fh_in.read(COCO_SECTOR_SIZE)
             rc = write_sector(cs, lsn, drive_number, read_data)
-            lsn += 1
+            if rc == E_OK:
+                lsn += 1
 
-        print(f"Finished writing {lsn - 1} sectors")
+        print(f"Finished writing {lsn} sectors")
     return rc, lsn
 
 
@@ -247,7 +249,7 @@ def test_opwrite(disk_name):
 
     # rc = eject_disk(drive_number)
     # assert rc == 0, "eject_disk() was not successful"
-    #rc = verify_destination_disk()
+    # rc = verify_destination_disk()
     # assert rc == 0, "verify_destination_disk() failed"
 
 
