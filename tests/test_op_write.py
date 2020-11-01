@@ -2,6 +2,7 @@
 import socket
 import sys
 import time
+
 # Mac dev path
 # sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
 
@@ -54,23 +55,40 @@ def server_command(cmd):
     socket = dwsocket.DWSocket(port=REMOTE_REPL_PORT)
     socket.debug = True
     socket.connect()
-    # socket.write('dw disk show\n')  # <- the NEWLINE IS absolutely necessary
-    server_cmd = f'{cmd}\n' # <- the NEWLINE IS absolutely necessary
-    socket.write(server_cmd.encode('utf-8'))
-    # print(socket.read())
+    server_cmd = f'{cmd}\n'  # <- the NEWLINE IS absolutely necessary
+    socket.write(server_cmd.encode('utf-8'))  # need to do this in the server
+    # socket.write(server_cmd)
     socket.close()
     return socket
 
 
 def create_disk(drive_number, disk_name):
-    print(f'Creating blank disk image {disk_name} on drive # {drive_number}')
+    rc = 0
+    print(f'Creating blank disk image {disk_name} on drive # {drive_number}\n')
     time.sleep(1)
-    socket = server_command(f'dw disk create {drive_number} {disk_name}')
-    print('After creating socket')
-    time.sleep(3)
-    show_disk(socket, drive_number)
+    try:
+        socket = server_command(f'dw disk create {drive_number} {disk_name}')
+        print('After creating socket\n')
+        time.sleep(3)
+        show_disk(socket)
+    except Exception:
+        raise # so the caller sees it, and we can catch the specific exception
+        rc = 1
     print('After show_disk()\n')
     time.sleep(3)
+
+    return rc
+
+def eject_disk(drive_number, disk_name):
+    print(f'Ejecting disk image {disk_name} on drive # {drive_number}\n')
+    time.sleep(1)
+    socket = server_command(f'dw disk eject {drive_number}')
+    print('After creating socket\n')
+    time.sleep(3)
+    show_disk(socket)
+    print('After show_disk()\n')
+    time.sleep(3)
+
 
 def show_disk(socket):
     server_command(f'dw disk show')
@@ -100,9 +118,10 @@ def diskwrite(disk_name, drive_number, cs):
     # create_disk(254,'junk.dsk')
 
     with open(disk_name, 'rb') as fh_in:
+        print(f'Opening {disk_name} in READ mode')
         rc = E_OK
         lsn = 0
-        while rc == E_OK: # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
+        while rc == E_OK:  # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
             print(f'Write LSN: {lsn}')
             read_data = fh_in.read(COCO_SECTOR_SIZE)
             rc = write_sector(cs, lsn, drive_number, read_data)
@@ -139,7 +158,6 @@ def read_sector(cs, fh_in, lsn, drive_number):
 
 
 def write_sector(cs, lsn, drive_number, data):
-
     rc = -1
 
     cs.send(OP_WRITE)
@@ -156,6 +174,7 @@ def write_sector(cs, lsn, drive_number, data):
 
 
 def server_init(cs):
+    print('server_init()')
     print("s")
     cs.send(OP_DWINIT)
     cs.send(b'A')
@@ -165,6 +184,8 @@ def server_init(cs):
 
 
 def socket_init():
+    print('socket_init()')
+
     cs = None
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -194,8 +215,10 @@ def socket_init():
                 print(f'connection to : {addr}:{port}')
     return cs
 
+
 def verify_destination_disk():
     pass
+
 
 def test_opwrite(disk_name):
     """
@@ -214,14 +237,19 @@ def test_opwrite(disk_name):
 
     drive_number = 0
 
-    create_disk(drive_number, disk_name='newdisk.dsk')
+    # rc = create_disk(drive_number, disk_name='newdisk.dsk')
+    # assert rc == 0, "create_disk() was not successful"
     rc, lsn = diskwrite(disk_name, drive_number, cs)
     assert rc != E_OK, f'test_opwrite(): diskwrite() test returned {rc}'
 
     # TODO lsn number needs to be passed in on the cmd line , depending on the disk type
     # assert lsn < COCO_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
 
-    verify_destination_disk()
+    # rc = eject_disk(drive_number)
+    # assert rc == 0, "eject_disk() was not successful"
+    #rc = verify_destination_disk()
+    # assert rc == 0, "verify_destination_disk() failed"
+
 
 @pytest.fixture()
 def disk_name(pytestconfig):
