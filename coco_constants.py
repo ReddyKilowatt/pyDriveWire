@@ -10,4 +10,5 @@ SS_40TRK = 720
 DS_40TRK = 1440
 DS_80TRK = 2880
 
+REMOTE_REPL_PORT = 6809
 # vim: ts=4 sw=4 sts=4 expandtab
