@@ -34,17 +34,21 @@ class ParseNode:
         allNodes = list(self.nodes.keys())
         for i in range(len(key) + 1):
             s = key[:i]
-            #  TODO the nodes sshould be strings already, so that encoding
+            #  TODO the nodes should be strings already, so that encoding
             # doesn't need to be done on the fly
-            nodes = [n for n in allNodes if n.encode('utf-8').startswith(s)]
+            nodes = [n for n in allNodes if n.startswith(s)]
+            # Python 3
+            # nodes = [n for n in allNodes if n.encode('utf-8').startswith(s)]
             # print i,"(%s"%s,nodes
             if len(nodes) == 1:
                 key = nodes[0]
                 return self.nodes.get(key, None)
         return None
 
-    def repr(self):
-        return str(nodes)
+    # def repr(self): #bug
+    def __repr__(self): # bugfix
+        # return str(nodes) # is this a typo? # bug?
+        return str(self.nodes) # bugfix
 
     def help(self):
         p = []
@@ -79,11 +83,13 @@ class ParseAction:
     def __init__(self, fn):
         self.fn = fn
 
-    def call(self, *args):
+    def call(self, *args): # think about renaming this, python uses __call__
         return self.fn(*args)
 
-    def repr(self):
-        return fn
+    # def repr(self): # bug
+    def __repr__(self): #bugfix
+        # return fn #bug
+        return self.fn #bugfix
 
 
 class DWParser:
@@ -866,6 +872,7 @@ class DWParser:
         data = re.subn(b'.\x7f', b'', data)[0]
         u = data.upper()
         # if u.startswith("AT"):
+        #   tokens = [b"AT"]
         # Python 3
         if u.startswith(b"AT"):
             tokens = [b"AT"]
@@ -930,27 +937,28 @@ class DWRepl:
                     server = self.parser.server
                     iprompt = '(%d)' % server.instance
                 print("pyDriveWire%s> " % iprompt, end=' ')
-                # wdata = input()
+                wdata = input()
                 # Python 3
-                wdata = input().encode('utf-8')
+                # wdata = input().encode('utf-8')
             except EOFError:
                 print()
                 print("Bye!")
                 break
 
             # basic stuff
-            # if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
-            if wdata.find(ord(b'\x04')) == 0 or wdata.lower() in [b"exit", b"quit"]:
+            if wdata.find(chr(4)) == 0 or wdata.lower() in ["exit", "quit"]:
+            #Python3
+            # if wdata.find(ord(b'\x04')) == 0 or wdata.lower() in ["exit", "quit"]:
                 # XXX Do some cleanup... how?
                 print("Bye!")
                 break
 
             try:
-                # wdata = re.subn('.\b', '', wdata)[0]
-                # wdata = re.subn('.\x7f', '', wdata)[0]
+                wdata = re.subn('.\b', '', wdata)[0]
+                wdata = re.subn('.\x7f', '', wdata)[0]
                 # python 3
-                wdata = re.subn(b'.\b', b'', wdata)[0]
-                wdata = re.subn(b'.\x7f', b'', wdata)[0]
+                # wdata = re.subn(b'.\b', b'', wdata)[0]
+                # wdata = re.subn(b'.\x7f', b'', wdata)[0]
                 r = self.parser.parse(wdata, True)
                 print(r)
             except Exception as ex:
