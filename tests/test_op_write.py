@@ -52,51 +52,62 @@ def server_command(cmd):
     """
     Uses the telnet server to send commands to the main pyDriveWire server
     """
+    print('server_command()\n')
+
     socket = dwsocket.DWSocket(port=REMOTE_REPL_PORT)
     socket.debug = True
-    socket.connect()
+    _ = socket.connect()
     server_cmd = f'{cmd}\n'  # <- the NEWLINE IS absolutely necessary
-    socket.write(server_cmd.encode('utf-8'))  # need to do this in the server
+    _ = socket.write(server_cmd.encode('utf-8'))  # need to do this in the server
     # socket.write(server_cmd)
-    socket.close()
+    # _ = socket.close()
     return socket
 
 
-def create_disk(drive_number, disk_name):
+def create_disk(drive_number, dest_disk_name):
+    print('create_disk()\n')
     rc = 0
-    print(f'Creating blank disk image {disk_name} on drive # {drive_number}\n')
-    time.sleep(1)
+    print(f'Creating blank disk image "{dest_disk_name}" on drive # {drive_number}\n')
+    #time.sleep(1)
     try:
-        socket = server_command(f'dw disk create {drive_number} {disk_name}')
+        socket = server_command(f'dw disk create {drive_number} {dest_disk_name}')
         print('After creating socket\n')
-        time.sleep(3)
-        show_disk(socket)
+        #time.sleep(3)
+        # show_disk(socket)
+        socket.close()
+        #print('After show_disk()\n')
+        #time.sleep(3)
     except Exception:
         raise  # so the caller sees it, and we can catch the specific exception
         rc = 1
-    print('After show_disk()\n')
-    time.sleep(3)
 
     return rc
 
 
-def eject_disk(drive_number, disk_name):
-    print(f'Ejecting disk image {disk_name} on drive # {drive_number}\n')
-    time.sleep(1)
+def eject_disk(drive_number, dest_disk_name):
+    rc = 0
+    print('eject_disk()\n')
+
+    print(f'Ejecting disk image {dest_disk_name} on drive # {drive_number}\n')
+    # time.sleep(1)
     socket = server_command(f'dw disk eject {drive_number}')
     print('After creating socket\n')
-    time.sleep(3)
-    show_disk(socket)
+    # time.sleep(3)
+    # show_disk(socket)
+    socket.close()
     print('After show_disk()\n')
-    time.sleep(3)
+    # time.sleep(3)
+    return rc
 
 
 def show_disk(socket):
+    print('show_disk()\n')
+
     server_command(f'dw disk show')
     print(socket.read())
 
 
-def diskwrite(disk_name, drive_number, cs):
+def diskwrite(source_disk_name, drive_number, cs):
     """
     0	OP_WRITE ($57)
     1	Drive number (0-255)
@@ -118,8 +129,9 @@ def diskwrite(disk_name, drive_number, cs):
 
     # create_disk(254,'junk.dsk')
 
-    with open(disk_name, 'rb') as fh_in:
-        print(f'Opening {disk_name} in READ mode')
+    print('diskwrite()\n')
+    with open(source_disk_name, 'rb') as fh_in:
+        print(f'Opening {source_disk_name} in READ mode')
         rc = E_OK
         lsn = 0
         while rc == E_OK:  # TODO && lsn < the max sectors for the disk type (passed in on cmd line)
@@ -230,6 +242,9 @@ def test_opwrite(disk_name):
     to get an overview of what the test is doing.
     """
     rc = E_OK
+    source_disk_name = disk_name
+    dest_disk_name = 'newdisk.dsk'
+    drive_number = 0
 
     cs = socket_init()
     assert cs is not None, 'ERROR: test_opwrite(): Socket initialization was not successfull\n'
@@ -238,20 +253,20 @@ def test_opwrite(disk_name):
     assert init_data == b'\xff', f'test_opwrite(): DWINIT ERROR: Server initialization was not successful. Data from recv() was' \
                                  f' {init_data}, exp: b"\xff" \n'
 
-    drive_number = 0
+    rc = create_disk(drive_number, dest_disk_name)
+    assert rc == 0, "create_disk() was not successful"
 
-    # rc = create_disk(drive_number, disk_name='newdisk.dsk')
-    # assert rc == 0, "create_disk() was not successful"
-    rc, lsn = diskwrite(disk_name, drive_number, cs)
+    rc, lsn = diskwrite(source_disk_name, drive_number, cs)
     assert rc != E_OK, f'test_opwrite(): diskwrite() test returned {rc}'
 
     # TODO lsn number needs to be passed in on the cmd line , depending on the disk type
     # assert lsn < COCO_SECTOR_SIZE, f'test_opwrite(): diskwrite() lsn was {lsn}, EXP < {COCO_DISK_SECTOR_SIZE}.\n'
 
-    # rc = eject_disk(drive_number)
-    # assert rc == 0, "eject_disk() was not successful"
     # rc = verify_destination_disk()
     # assert rc == 0, "verify_destination_disk() failed"
+
+    rc = eject_disk(drive_number, dest_disk_name)
+    assert rc == 0, "eject_disk() was not successful"
 
 
 @pytest.fixture()
