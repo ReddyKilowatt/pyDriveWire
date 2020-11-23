@@ -916,7 +916,10 @@ class DWRemoteRepl:
     def run(self):
         while True:
             # sock.accept()
-            s = self.sock.read(readLine=True)
+            # s = self.sock.read(readLine=True)
+            # Python 3
+            s = self.sock.read(readLine=True).decode('utf-8')
+            # print(f'run() type(s): {type(s)}')
             if len(s) > 0:
                 s = s.lstrip().rstrip()
                 s = re.subn('.\b', '', s)[0]
