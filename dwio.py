@@ -241,7 +241,8 @@ class DWIO:
             if d:
                 # print "put: (%s)" % d
                 self.rb.add(len(d))
-                print(f'_readHandler(): type(d) {type(d)}')
+                # Python 3
+                # print(f'_readHandler(): type(d) {type(d)}')
                 self.rq.put(d)
         self._print("%s: Exiting _readHandler..." % self)
 
