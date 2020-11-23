@@ -50,6 +50,12 @@ class ServerCommand(ServerDiskCommands, ServerConfigCommands):
         self._write = self._repl.write
         self._read = self._repl.read
 
+    def debug_on(self):
+        self._repl.debug_on()
+
+    def debug_off(self):
+        self._repl.debug_off()
+
 
 sc = ServerCommand()
 # sc.config_show()
