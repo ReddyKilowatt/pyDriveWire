@@ -51,7 +51,7 @@ class DWSocket(DWIO):
         except Exception as e:
             print((str(e)))
             raise Exception("Connection closed")
-            self._close()
+            # self._close() # why is this here? It never gets called after the exception is raised
         if any(ri):
             # print "dwsocket: reading"
             data = self.conn.recv(count)
@@ -61,7 +61,7 @@ class DWSocket(DWIO):
         #Python3
         if data == b'':
             raise Exception("Connection closed")
-            self._close()
+            # self._close() # why is this here? It never gets called after the exception is raised
         # if data:
         # 	print "r",data
         if self.debug and data is not None:
