@@ -5,6 +5,7 @@ from dwio import DWIO
 import time
 import select
 from dwlib import canonicalize
+import platform
 
 
 class DWSocket(DWIO):
@@ -15,12 +16,19 @@ class DWSocket(DWIO):
         self.conn = conn
         if self.conn:
             self.sock = self.conn
+            self._getSelectHandle()
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
         self.addr = addr
         self.binding = None
         self.debug = debug
+
+    def _getSelectHandle(self):
+        if platform.system() == 'Windows':
+            self.selectHandle = self.conn
+        else:
+            self.selectHandle = self.conn.fileno()
 
     def _print(self, msg):
         if self.debug:
@@ -38,6 +46,7 @@ class DWSocket(DWIO):
         self.sock.connect((self.host, self.port))
         self._print("socket: %s: connecting to %s:%s" % (self, self.host, self.port))
         self.conn = self.sock
+        self._getSelectHandle()
 
     def _read(self, count=256):
         data = None
@@ -172,6 +181,7 @@ class DWSocketServer(DWSocket):
             try:
                 r = self.sock.listen(0)
                 (self.conn, self.addr) = self.sock.accept()
+                self._getSelectHandle()
                 self._print("Accepted Connection: %s" % str(self.addr))
             except Exception as ex:
                 print(("Server Aborted", str(ex)))
