@@ -232,11 +232,12 @@ class DWIO:
         self._print("%s: Starting _readHandler..." % self)
         while not self.abort:
             try:
-                # d = self._read()
-                # debugging for Python 3 May 31, 2020
-                d = self._read() #d = self._read(1)
+                d = self._read()
             except Exception as e:
+                # for Debug
+                print(f'_readHandler() Exception-before')
                 print((str(e)))
+                print(f'_readHandler() Exception-after')
                 break
             if d:
                 # print "put: (%s)" % d
