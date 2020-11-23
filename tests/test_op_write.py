@@ -16,24 +16,6 @@ from coco_constants import *
 
 PYTHON3_PORT = 65503  # This allows running a Python 2.7 server on 65502, concurrently with a Python 3 server
 
-"""
-THIS CODE CAN BE USED TO SEND COMMANDS TO THE'SERVER WITHOUT NEEDING
-TO TYPE THE COMMANDS IN THE SERVER CONSOLE
-TO USE IT option cmdPort 6809 must be in the .pydrivewire_py3 file
-
-
-import sys
-sys.path.append('..')
-import dwsocket
-from dwsocket import DWSocket
-s = dwsocket.DWSocket(port=6809)
-s.debug = True
-s.connect()
-s.write('dw disk show\n')  # <- the NEWLINE IS absolutely necessary
-print(s.read())
-s.close()
-"""
-
 import pytest
 
 
