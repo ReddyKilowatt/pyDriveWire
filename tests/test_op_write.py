@@ -6,9 +6,9 @@ import sys
 # sys.path.append('/Users/tonycappellini/work/repos/git/pyDriveWire_3.6')
 
 # Windows Dev path
-sys.path.append(r'c:\Users\z48176zz\Documents\sources\GIT\Python\Coco\pyDriveWire3.7')
+# sys.path.append(r'c:\Users\z48176zz\Documents\sources\GIT\Python\Coco\pyDriveWire3.7')
+sys.path.append(r'c:\Users\z48176zz\Documents\sources\GIT\Python\Coco\pyDriveWire3.7_pytest_dev2')
 
-import dwsocket
 from dwconstants import *
 from dwutil import *
 from struct import *
@@ -47,30 +47,6 @@ import pytest
 #     print(f"test_print_name_2(disk_name): {pytestconfig.getoption('disk_name')}")
 
 
-def server_command(cmd):
-    """
-    Uses the telnet server to send commands to the main pyDriveWire server
-    """
-    socket = dwsocket.DWSocket(port=6809)
-    socket.debug = True
-    socket.connect()
-    # socket.write('dw disk show\n')  # <- the NEWLINE IS absolutely necessary
-    socket.write('f{cmd}\n')  # <- the NEWLINE IS absolutely necessary
-    # print(socket.read())
-    socket.close()
-    return socket
-
-
-def create_disk(drive_number, disk_name):
-    socket = server_command(f'dw disk create {drive_number} {disk_name}')
-    show_disk(socket, drive_number)
-
-
-def show_disk(socket, drive_number):
-    server_command(f'dw disk show {drive_number}')
-    print(socket.read())
-
-
 def diskwrite(disk_name, cs):
     """
     0	OP_WRITE ($57)
@@ -90,8 +66,6 @@ def diskwrite(disk_name, cs):
 
     # write the contents of the server to a new disk file
     # manually diff the two files (for now) to see if they compare
-
-    # create_disk(254,'junk.dsk')
 
     with open(disk_name, 'rb') as fh_in:
         rc = E_OK
