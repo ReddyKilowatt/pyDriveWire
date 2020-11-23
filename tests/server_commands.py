@@ -50,16 +50,7 @@ class ServerCommand(ServerDiskCommands, ServerConfigCommands):
         self._write = self._repl.write
         self._read = self._repl.read
 
-    def _cmd_common(self, repl_command, print_output=True):
-        self._write(f'dw {repl_command}')
-        data = self._read()
-        if print_output:
-            print(f'{data}')
-        return data  # the caller may want to parse the output for specific content
-
-    # def disk_show(self, print_output=True):
-    #     return self._disk_cmd_common('show', print_output)
-
 
 sc = ServerCommand()
-sc.config_show()
+# sc.config_show()
+sc.disk_show()
