@@ -241,6 +241,7 @@ class DWIO:
             if d:
                 # print "put: (%s)" % d
                 self.rb.add(len(d))
+                print(f'_readHandler(): type(d) {type(d)}')
                 self.rq.put(d)
         self._print("%s: Exiting _readHandler..." % self)
 
@@ -266,13 +267,15 @@ class DWIO:
             d = b''
             try:
                 # d = self.wq.get(True, 1)
-                d = self.wq.get(True, 1)
+                # Python 3
+                d = self.wq.get(True, 1).encode('utf-8')
             except Exception as e:
                 pass
                 # print str(e)
 
             if d:
                 # "wh: %d" % len(d)
+                # print(f'_writeHandler(): type(d) {type(d)}')
                 self._write(d)
         self._print("%s: Exiting _writeHandler..." % self)
 
