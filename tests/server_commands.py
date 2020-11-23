@@ -1,7 +1,7 @@
 from remote_repl import RemoteRepl
 
 
-class ServerConfigCommands:
+class ConfigCommands:
 
     def _config_common(self, repl_command, print_output=True):
         self._write(f'dw config {repl_command}')
@@ -14,7 +14,7 @@ class ServerConfigCommands:
         return self._config_common('show', print_output)
 
 
-class ServerDiskCommands:
+class DiskCommands:
 
     def _disk_common(self, repl_command, print_output=True):
         self._write(f'dw disk {repl_command}')
@@ -39,7 +39,7 @@ class ServerDiskCommands:
         return self._disk_common(f'disk info {drive_number}')
 
 
-class ServerCommand(ServerDiskCommands, ServerConfigCommands):
+class ServerCommands(DiskCommands, ConfigCommands):
     """
     The ServerCommand class provides a simple way for the caller
     to send commands to the pyDriveWire server
@@ -57,6 +57,6 @@ class ServerCommand(ServerDiskCommands, ServerConfigCommands):
         self._repl.debug_off()
 
 
-sc = ServerCommand()
+sc = ServerCommands()
 # sc.config_show()
 sc.disk_show()
